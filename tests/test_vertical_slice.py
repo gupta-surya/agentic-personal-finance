@@ -28,7 +28,7 @@ def _row_counts(conn: Connection) -> dict[str, int]:
 def test_groceries_spend_for_march_2026_is_exact(conn: Connection) -> None:
     _load(conn)
 
-    result = spend_by_category(conn, TENANT, MARCH_2026, "groceries")
+    result = spend_by_category(conn, TENANT, MARCH_2026, "groceries", "USD")
 
     # Hand-calculated from fixtures/simplefin_demo.json, groceries, March 2026:
     #   chk-txn-003  2026-03-09   -12.49
@@ -47,7 +47,9 @@ def test_groceries_spend_for_march_2026_is_exact(conn: Connection) -> None:
 def test_any_day_in_month_selects_that_month(conn: Connection) -> None:
     _load(conn)
 
-    assert spend_by_category(conn, TENANT, date(2026, 3, 31), "groceries") == Decimal("285.32")
+    assert spend_by_category(conn, TENANT, date(2026, 3, 31), "groceries", "USD") == Decimal(
+        "285.32"
+    )
 
 
 def test_loader_is_idempotent(conn: Connection) -> None:
@@ -62,10 +64,10 @@ def test_loader_is_idempotent(conn: Connection) -> None:
 def test_unknown_category_is_zero(conn: Connection) -> None:
     _load(conn)
 
-    assert spend_by_category(conn, TENANT, MARCH_2026, "travel") == Decimal("0")
+    assert spend_by_category(conn, TENANT, MARCH_2026, "travel", "USD") == Decimal("0")
 
 
 def test_other_tenant_sees_nothing(conn: Connection) -> None:
     _load(conn)
 
-    assert spend_by_category(conn, "other-tenant", MARCH_2026, "groceries") == Decimal("0")
+    assert spend_by_category(conn, "other-tenant", MARCH_2026, "groceries", "USD") == Decimal("0")

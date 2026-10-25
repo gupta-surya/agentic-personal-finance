@@ -35,7 +35,8 @@ CREATE TABLE raw_pulls (
     body_json         JSONB,
     parse_status      TEXT CHECK (parse_status IN ('ok', 'unrecognized', 'invalid')),
     parse_error       TEXT,
-    UNIQUE (tenant_id, body_sha256)
+    UNIQUE (tenant_id, body_sha256),
+    UNIQUE (tenant_id, id)
 );
 
 -- Silver. A connection is one login at one institution. Account ids are only
@@ -54,17 +55,41 @@ CREATE TABLE connections (
     UNIQUE (tenant_id, source, provider_key)
 );
 
+-- currency_kind 'custom' = a URL-identified currency (miles, points). It is stored
+-- but never fetched, and never summed into money totals. stale = a connector error
+-- covered this account in its latest pull. balance only moves forward in
+-- balance_as_of, so loading an older pull can't regress it.
 CREATE TABLE accounts (
-    tenant_id     TEXT    NOT NULL,
-    id            BIGSERIAL,
-    connection_id BIGINT  NOT NULL,
-    external_id   TEXT    NOT NULL,
-    name          TEXT    NOT NULL,
-    currency      TEXT    NOT NULL,
-    balance       NUMERIC NOT NULL,
+    tenant_id         TEXT        NOT NULL,
+    id                BIGSERIAL,
+    connection_id     BIGINT      NOT NULL,
+    external_id       TEXT        NOT NULL,
+    name              TEXT        NOT NULL,
+    currency          TEXT        NOT NULL,
+    currency_kind     TEXT        NOT NULL CHECK (currency_kind IN ('iso', 'custom')),
+    balance           NUMERIC     NOT NULL,
+    available_balance NUMERIC,
+    balance_as_of     TIMESTAMPTZ,
+    stale             BOOLEAN     NOT NULL,
     PRIMARY KEY (tenant_id, id),
     UNIQUE (tenant_id, connection_id, external_id),
     FOREIGN KEY (tenant_id, connection_id) REFERENCES connections (tenant_id, id)
+);
+
+-- Connector errors, one row per error per pull. Store the message untouched;
+-- sanitize it (ingest.sanitize.sanitize_for_display) before showing it.
+CREATE TABLE pull_errors (
+    tenant_id     TEXT   NOT NULL,
+    id            BIGSERIAL,
+    raw_pull_id   BIGINT NOT NULL,
+    code          TEXT   NOT NULL,
+    message       TEXT   NOT NULL,
+    connection_id BIGINT,
+    account_id    BIGINT,
+    PRIMARY KEY (tenant_id, id),
+    FOREIGN KEY (tenant_id, raw_pull_id) REFERENCES raw_pulls (tenant_id, id),
+    FOREIGN KEY (tenant_id, connection_id) REFERENCES connections (tenant_id, id),
+    FOREIGN KEY (tenant_id, account_id) REFERENCES accounts (tenant_id, id)
 );
 
 -- Reconciliation evidence: which legs, which rule, what window.
@@ -119,6 +144,12 @@ CREATE TABLE transactions (
     transfer_group_id     BIGINT,
     is_internal_transfer  BOOLEAN NOT NULL DEFAULT false,
     category_source       TEXT CHECK (category_source IN ('rule', 'model', 'user')),
+    -- first_seen_at: the pull that first inserted the row. last_changed_at: the
+    -- last pull that inserted or changed it (an unchanged re-pull writes nothing).
+    -- missing_since: set only on PENDING rows that a complete pull no longer returns.
+    first_seen_at         TIMESTAMPTZ NOT NULL,
+    last_changed_at       TIMESTAMPTZ NOT NULL,
+    missing_since         TIMESTAMPTZ,
     PRIMARY KEY (tenant_id, id),
     UNIQUE (tenant_id, account_id, external_id),
     CHECK (posted_date IS NOT NULL OR pending),
