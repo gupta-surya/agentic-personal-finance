@@ -1,0 +1,21 @@
+{
+  "errors": [],
+  "accounts": [
+    {
+      "org": {"domain": "demo-bank.example", "name": "Demo Bank"},
+      "id": "acct-num-001",
+      "name": "Demo Numeric Checking",
+      "currency": "USD",
+      "balance": "100.00",
+      "transactions": [
+        {
+          "id": "num-txn-001",
+          "posted": 1773081000,
+          "amount": -5.10,
+          "description": "CORNER MARKET 0042",
+          "extra": {"category": "groceries", "fee": 1.10}
+        }
+      ]
+    }
+  ]
+}

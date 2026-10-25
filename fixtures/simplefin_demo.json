@@ -1,0 +1,119 @@
+{
+  "errors": [],
+  "accounts": [
+    {
+      "org": {
+        "domain": "demo-bank.example",
+        "name": "Demo Bank",
+        "sfin-url": "https://simplefin.example/demo"
+      },
+      "id": "acct-chk-001",
+      "name": "Demo Checking",
+      "currency": "USD",
+      "balance": "4210.55",
+      "available-balance": "4210.55",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "chk-txn-001",
+          "posted": 1772355600,
+          "amount": "3200.00",
+          "description": "ACME CORP PAYROLL",
+          "extra": {"category": "income"}
+        },
+        {
+          "id": "chk-txn-002",
+          "posted": 1772722800,
+          "amount": "-1850.00",
+          "description": "OAKWOOD PROPERTY MGMT RENT",
+          "extra": {"category": "rent"}
+        },
+        {
+          "id": "chk-txn-003",
+          "posted": 1773081000,
+          "amount": "-12.49",
+          "description": "CORNER MARKET 0042",
+          "extra": {"category": "groceries"}
+        }
+      ]
+    },
+    {
+      "org": {
+        "domain": "demo-card.example",
+        "name": "Demo Card Co",
+        "sfin-url": "https://simplefin.example/demo"
+      },
+      "id": "acct-cc-001",
+      "name": "Demo Rewards Card",
+      "currency": "USD",
+      "balance": "-612.37",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "cc-txn-001",
+          "posted": 1772323199,
+          "amount": "-61.40",
+          "description": "GREENLEAF GROCERS",
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "cc-txn-002",
+          "posted": 1772539200,
+          "amount": "-84.17",
+          "description": "MAPLE STREET MARKET",
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "cc-txn-003",
+          "posted": 1773260100,
+          "amount": "-42.50",
+          "description": "THAI BASIL KITCHEN",
+          "extra": {"category": "dining"}
+        },
+        {
+          "id": "cc-txn-004",
+          "posted": 1773510300,
+          "amount": "-156.03",
+          "description": "FRESHWAY FOODS #118",
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "cc-txn-005",
+          "posted": 1773820800,
+          "amount": "-9.99",
+          "description": "STREAMFLIX MONTHLY",
+          "extra": {"category": "subscriptions"}
+        },
+        {
+          "id": "cc-txn-006",
+          "posted": 1774196400,
+          "amount": "-47.88",
+          "description": "VALLEY FARM MARKET",
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "cc-txn-007",
+          "posted": 1774357800,
+          "amount": "15.25",
+          "description": "FRESHWAY FOODS #118 REFUND",
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "cc-txn-008",
+          "posted": 1774897200,
+          "amount": "-33.33",
+          "description": "MAPLE STREET MARKET",
+          "pending": true,
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "cc-txn-009",
+          "posted": 1775001600,
+          "amount": "-29.99",
+          "description": "GREENLEAF GROCERS",
+          "extra": {"category": "groceries"}
+        }
+      ]
+    }
+  ]
+}
