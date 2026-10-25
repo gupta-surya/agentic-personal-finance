@@ -1,12 +1,12 @@
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from finance_agent.db.loader import Connection
 from finance_agent.queries.result import CashFlowRow, MonthlyCategorySpendRow, QueryResult
-from finance_agent.queries.series import CashFlow, MonthlySpendByCategory
+from finance_agent.queries.series import SeriesCatalog
 
 
 def _result(**overrides: object) -> QueryResult[MonthlyCategorySpendRow]:
@@ -96,22 +96,77 @@ def test_result_is_immutable() -> None:
         result.result_id = "other"  # type: ignore[misc]
 
 
-def test_protocols_are_satisfiable_by_plain_functions() -> None:
-    """mypy checks these assignments: a plain function matching the signature fits."""
+def test_month_must_be_first_day_on_both_row_types() -> None:
+    with pytest.raises(ValidationError, match="first day of a month"):
+        MonthlyCategorySpendRow(month=date(2026, 3, 15), category="groceries", spend=Decimal("1"))
+    with pytest.raises(ValidationError, match="first day of a month"):
+        CashFlowRow(
+            month=date(2026, 3, 31),
+            inflow=Decimal("10"),
+            outflow=Decimal("4"),
+            net=Decimal("6"),
+        )
 
-    def spend(
-        conn: Connection, tenant_id: str, start: date, end: date, currency: str
+
+def test_cash_flow_net_must_equal_inflow_minus_outflow() -> None:
+    with pytest.raises(ValidationError, match="net must equal inflow - outflow"):
+        CashFlowRow(
+            month=date(2026, 3, 1),
+            inflow=Decimal("3200.00"),
+            outflow=Decimal("2000.00"),
+            net=Decimal("1200.01"),
+        )
+
+
+def test_cash_flow_allows_negative_net() -> None:
+    row = CashFlowRow(
+        month=date(2026, 3, 1),
+        inflow=Decimal("100.00"),
+        outflow=Decimal("250.50"),
+        net=Decimal("-150.50"),
+    )
+
+    assert row.net == Decimal("-150.50")
+
+
+class _StubCatalog:
+    """Constructed like the real one would be, minus the database."""
+
+    def __init__(self, tenant_id: str) -> None:
+        self.tenant_id = tenant_id
+
+    def monthly_spend_by_category(
+        self, start: date, end: date, currency: str
     ) -> QueryResult[MonthlyCategorySpendRow]:
         return _result(rows=[])
 
-    def flow(
-        conn: Connection, tenant_id: str, start: date, end: date, currency: str
-    ) -> QueryResult[CashFlowRow]:
+    def cash_flow(self, start: date, end: date, currency: str) -> QueryResult[CashFlowRow]:
         return QueryResult[CashFlowRow](
             query="cash_flow", params={}, result_id="r-4", data_version="v1", rows=[]
         )
 
-    spend_query: MonthlySpendByCategory = spend
-    flow_query: CashFlow = flow
 
-    assert callable(spend_query) and callable(flow_query)
+def test_series_catalog_is_satisfiable_by_a_plain_class() -> None:
+    """mypy checks the assignment: a class with these methods fits the Protocol."""
+    catalog: SeriesCatalog = _StubCatalog("demo-tenant")
+
+    assert catalog.cash_flow(date(2026, 3, 1), date(2026, 4, 1), "USD").rows == []
+
+
+def test_series_contract_does_not_import_the_database_layer() -> None:
+    import ast
+
+    import finance_agent.queries.result as result_module
+    import finance_agent.queries.series as series_module
+
+    for module in (result_module, series_module):
+        tree = ast.parse(Path(module.__file__ or "").read_text(encoding="utf-8"))
+        imported = [
+            node.module or "" for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+        ] + [
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        ]
+        assert not [name for name in imported if name.startswith("finance_agent.db")]

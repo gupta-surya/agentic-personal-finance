@@ -1,6 +1,10 @@
-"""Signatures for the series queries charts need. Types only: no implementations.
+"""The series queries charts need, as one catalog interface. Types only.
 
-Shared conventions for every query here:
+The real implementation is constructed with ``(conn, tenant_id)`` and exposes
+these methods, so callers and the frontend contract never see a database
+connection. This module deliberately imports nothing from ``finance_agent.db``.
+
+Conventions shared by every method:
 - ``start`` is inclusive and ``end`` is exclusive, both dates passed in by the
   caller. Logic never reads the wall clock.
 - Rows are bucketed by calendar month of ``posted_date``. A range that starts or
@@ -15,21 +19,16 @@ Shared conventions for every query here:
 from datetime import date
 from typing import Protocol
 
-from finance_agent.db.loader import Connection
 from finance_agent.queries.result import CashFlowRow, MonthlyCategorySpendRow, QueryResult
 
 
-class MonthlySpendByCategory(Protocol):
-    """Spend per category per month over a date range (stacked bar, trend lines)."""
+class SeriesCatalog(Protocol):
+    def monthly_spend_by_category(
+        self, start: date, end: date, currency: str
+    ) -> QueryResult[MonthlyCategorySpendRow]:
+        """Spend per category per month (stacked bars, trend lines)."""
+        ...
 
-    def __call__(
-        self, conn: Connection, tenant_id: str, start: date, end: date, currency: str
-    ) -> QueryResult[MonthlyCategorySpendRow]: ...
-
-
-class CashFlow(Protocol):
-    """Inflow, outflow and net per month over a date range (cash flow bars)."""
-
-    def __call__(
-        self, conn: Connection, tenant_id: str, start: date, end: date, currency: str
-    ) -> QueryResult[CashFlowRow]: ...
+    def cash_flow(self, start: date, end: date, currency: str) -> QueryResult[CashFlowRow]:
+        """Inflow, outflow and net per month (cash flow bars)."""
+        ...

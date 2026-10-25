@@ -12,7 +12,14 @@ from datetime import date
 from decimal import Decimal
 from typing import Annotated, Generic, Self, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, JsonValue, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    JsonValue,
+    field_validator,
+    model_validator,
+)
 
 
 def _reject_float(value: object) -> object:
@@ -22,6 +29,13 @@ def _reject_float(value: object) -> object:
 
 
 Money = Annotated[Decimal, BeforeValidator(_reject_float)]
+
+
+def _first_of_month(value: date) -> date:
+    if value.day != 1:
+        raise ValueError(f"month must be the first day of a month, got {value.isoformat()}")
+    return value
+
 
 RowT = TypeVar("RowT", bound=BaseModel)
 
@@ -61,6 +75,8 @@ class MonthlyCategorySpendRow(BaseModel):
     category: str | None  # None = uncategorized
     spend: Money
 
+    _month_is_first = field_validator("month")(_first_of_month)
+
 
 class CashFlowRow(BaseModel):
     """Money in and out for one calendar month. ``net = inflow - outflow``."""
@@ -71,3 +87,13 @@ class CashFlowRow(BaseModel):
     inflow: Money  # sum of credits, zero or more
     outflow: Money  # sum of debits as a positive number
     net: Money
+
+    _month_is_first = field_validator("month")(_first_of_month)
+
+    @model_validator(mode="after")
+    def _net_matches(self) -> Self:
+        if self.net != self.inflow - self.outflow:
+            raise ValueError(
+                f"net must equal inflow - outflow ({self.inflow} - {self.outflow}), got {self.net}"
+            )
+        return self
