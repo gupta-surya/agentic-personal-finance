@@ -1,0 +1,28 @@
+{
+  "data_version": "dv_12",
+  "params": {
+    "currency": "USD",
+    "end": "2026-04-01",
+    "start": "2026-02-01"
+  },
+  "query": "monthly_spend_by_category",
+  "result_id": "res_7f3a",
+  "rows": [
+    {
+      "category": "groceries",
+      "month": "2026-02-01",
+      "spend": "412.18"
+    },
+    {
+      "category": "groceries",
+      "month": "2026-03-01",
+      "spend": "285.32"
+    },
+    {
+      "category": null,
+      "month": "2026-03-01",
+      "spend": "19.99"
+    }
+  ],
+  "value": null
+}

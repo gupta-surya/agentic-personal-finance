@@ -1,0 +1,25 @@
+{
+  "data_version": "dv_12",
+  "params": {
+    "currency": "USD",
+    "end": "2026-04-01",
+    "start": "2026-02-01"
+  },
+  "query": "cash_flow",
+  "result_id": "res_7f3b",
+  "rows": [
+    {
+      "inflow": "3200.00",
+      "month": "2026-02-01",
+      "net": "549.60",
+      "outflow": "2650.40"
+    },
+    {
+      "inflow": "3200.00",
+      "month": "2026-03-01",
+      "net": "-210.75",
+      "outflow": "3410.75"
+    }
+  ],
+  "value": null
+}

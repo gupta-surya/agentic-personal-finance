@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "CashFlowRow": {
+      "description": "Money in and out for one calendar month. ``net = inflow - outflow``.",
+      "properties": {
+        "inflow": {
+          "title": "Inflow",
+          "type": "string"
+        },
+        "month": {
+          "format": "date",
+          "title": "Month",
+          "type": "string"
+        },
+        "net": {
+          "title": "Net",
+          "type": "string"
+        },
+        "outflow": {
+          "title": "Outflow",
+          "type": "string"
+        }
+      },
+      "required": [
+        "month",
+        "inflow",
+        "outflow",
+        "net"
+      ],
+      "title": "CashFlowRow",
+      "type": "object"
+    },
+    "JsonValue": {}
+  },
+  "properties": {
+    "data_version": {
+      "title": "Data Version",
+      "type": "string"
+    },
+    "params": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Params",
+      "type": "object"
+    },
+    "query": {
+      "title": "Query",
+      "type": "string"
+    },
+    "result_id": {
+      "title": "Result Id",
+      "type": "string"
+    },
+    "rows": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/CashFlowRow"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rows"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value"
+    }
+  },
+  "required": [
+    "query",
+    "params",
+    "result_id",
+    "data_version"
+  ],
+  "title": "QueryResult[CashFlowRow]",
+  "type": "object"
+}
