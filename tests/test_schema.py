@@ -2,37 +2,35 @@ import json
 import os
 from decimal import Decimal
 from importlib.resources import files
-from pathlib import Path
 
 import psycopg
 import pytest
-from alembic import command
-from alembic.config import Config
 from psycopg.errors import CheckViolation, UniqueViolation
-from sqlalchemy import create_engine
 
-from finance_agent.clients.simplefin import FixtureSimpleFinClient
 from finance_agent.db.default_categories import DEFAULT_CATEGORIES, seed_default_categories
-from finance_agent.db.loader import (
-    Connection,
-    TenantNotProvisionedError,
-    apply_schema,
-    load_payload,
-)
+from finance_agent.db.loader import Connection, TenantNotProvisionedError, apply_schema
+from finance_agent.ingest.pipeline import ingest
+from tests.helpers import FIXTURES, UTC_TZ, ingest_file, pull_from_file, pull_from_text
+from tests.helpers import alembic as _alembic
 
-FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "simplefin_demo.json"
+FIXTURE = FIXTURES / "simplefin_demo.json"
 TENANT = "demo-tenant"
 
 SchemaShape = tuple[list[tuple[object, ...]], list[tuple[object, ...]]]
 
 
 def _load(conn: Connection) -> None:
-    load_payload(conn, TENANT, FixtureSimpleFinClient(FIXTURE).fetch())
+    ingest_file(conn, TENANT, "simplefin_demo.json")
+
+
+def _ingest_text(conn: Connection, body: str) -> None:
+    ingest(conn, TENANT, pull_from_text(body), UTC_TZ)
 
 
 def _body(transactions: list[dict[str, object]] | None, **account: object) -> str:
     """A one-account SimpleFIN body; ``transactions=None`` omits the key entirely."""
     acct: dict[str, object] = {
+        "org": {"domain": "x.example", "sfin-url": "https://sfin.x.example"},
         "id": "acct-x",
         "name": "X",
         "currency": "USD",
@@ -42,21 +40,6 @@ def _body(transactions: list[dict[str, object]] | None, **account: object) -> st
     if transactions is not None:
         acct["transactions"] = transactions
     return json.dumps({"errors": [], "accounts": [acct]})
-
-
-def _alembic(action: str, revision: str) -> None:
-    url = os.environ.get(
-        "TEST_DATABASE_URL", "postgresql://finance:finance@127.0.0.1:5432/finance_test"
-    ).replace("postgresql://", "postgresql+psycopg://", 1)
-    config = Config()
-    config.set_main_option("script_location", str(files("finance_agent.db") / "migrations"))
-    engine = create_engine(url)
-    try:
-        with engine.begin() as connection:
-            config.attributes["connection"] = connection
-            getattr(command, action)(config, revision)
-    finally:
-        engine.dispose()
 
 
 def _count(conn: Connection, query: str) -> int:
@@ -256,10 +239,12 @@ def test_unknown_category_on_transaction_is_rejected(conn: Connection) -> None:
 def test_unprovisioned_tenant_raises_a_clear_error(conn: Connection) -> None:
     # The taxonomy is seeded for demo-tenant only.
     with pytest.raises(TenantNotProvisionedError, match="seed_default_categories"):
-        load_payload(conn, "unseeded-tenant", FixtureSimpleFinClient(FIXTURE).fetch())
+        ingest(conn, "unseeded-tenant", pull_from_file("simplefin_demo.json"), UTC_TZ)
 
     assert _count(conn, "SELECT count(*) FROM transactions") == 0
-    assert _count(conn, "SELECT count(*) FROM raw_payloads") == 0
+    # The bytes are kept in bronze, unprocessed, so the pull can be reprocessed later.
+    row = conn.execute("SELECT parse_status FROM raw_pulls").fetchone()
+    assert row == (None,)
 
 
 def test_unknown_category_value_loads_as_uncategorized(conn: Connection) -> None:
@@ -281,7 +266,7 @@ def test_unknown_category_value_loads_as_uncategorized(conn: Connection) -> None
             },
         ]
     )
-    load_payload(conn, TENANT, body)
+    _ingest_text(conn, body)
 
     rows = conn.execute(
         "SELECT external_id, category, category_source FROM transactions ORDER BY external_id"
@@ -330,8 +315,7 @@ def test_deleting_a_category_in_use_is_refused(conn: Connection) -> None:
 
 
 def test_numeric_amount_and_raw_keep_exact_number_text(conn: Connection) -> None:
-    numeric = FIXTURE.parent / "simplefin_numeric_amount.json"
-    load_payload(conn, TENANT, numeric.read_text(encoding="utf-8"))
+    ingest_file(conn, TENANT, "simplefin_numeric_amount.json")
 
     row = conn.execute(
         "SELECT amount, raw::text, raw -> 'extra' ->> 'fee' FROM transactions "
@@ -425,7 +409,7 @@ def test_renaming_a_category_cascades_to_merchant_rules(conn: Connection) -> Non
 def test_account_without_transactions_loads(
     conn: Connection, transactions: list[dict[str, object]] | None
 ) -> None:
-    load_payload(conn, TENANT, _body(transactions))
+    _ingest_text(conn, _body(transactions))
 
     assert _count(conn, "SELECT count(*) FROM accounts") == 1
     assert _count(conn, "SELECT count(*) FROM transactions") == 0
@@ -438,7 +422,7 @@ def test_payload_with_errors_still_loads(conn: Connection) -> None:
             "accounts": json.loads(_body([]))["accounts"],
         }
     )
-    load_payload(conn, TENANT, body)
+    _ingest_text(conn, body)
 
     assert _count(conn, "SELECT count(*) FROM accounts") == 1
 
@@ -474,3 +458,36 @@ def test_apply_schema_works_on_a_non_autocommit_connection(conn: Connection) -> 
         apply_schema(plain)  # already at head: must be a no-op, not a deadlock
         assert plain.autocommit is False
         assert plain.info.transaction_status == psycopg.pq.TransactionStatus.IDLE
+
+
+def test_upgrade_moves_phase1_data_under_a_legacy_connection(conn: Connection) -> None:
+    _alembic("downgrade", "base")
+    _alembic("upgrade", "0002")
+    conn.execute("INSERT INTO categories (tenant_id, group_name, name) VALUES ('t', 'Food', 'x')")
+    conn.execute(
+        "INSERT INTO raw_payloads (tenant_id, source, payload, payload_sha256) "
+        "VALUES ('t', 'simplefin', '{\"accounts\": []}', 'old-hash')"
+    )
+    conn.execute("INSERT INTO accounts VALUES ('t', 'a1', 'Checking', 'Demo Bank', 'USD', 5)")
+    conn.execute(
+        "INSERT INTO transactions (tenant_id, account_external_id, external_id, posted_date, "
+        "amount, description, category, pending, category_source) "
+        "VALUES ('t', 'a1', 't1', '2026-03-01', -1.50, 'coffee', 'x', false, 'user')"
+    )
+    _alembic("upgrade", "head")
+
+    assert conn.execute("SELECT source, provider_key, name FROM connections").fetchall() == [
+        ("simplefin", "legacy", "legacy")
+    ]
+    assert conn.execute(
+        "SELECT a.external_id, c.provider_key, t.external_id, t.amount, t.category, "
+        "t.category_source, t.transacted_date "
+        "FROM transactions t JOIN accounts a ON a.id = t.account_id "
+        "JOIN connections c ON c.id = a.connection_id"
+    ).fetchall() == [("a1", "legacy", "t1", Decimal("-1.50"), "x", "user", None)]
+    pull = conn.execute(
+        "SELECT dialect_detected, parse_status, convert_from(body, 'UTF8'), "
+        "body_sha256 = encode(sha256(body), 'hex') FROM raw_pulls"
+    ).fetchone()
+    assert pull == ("v1", "ok", '{"accounts": []}', True)
+    assert _count(conn, "SELECT count(*) FROM pg_tables WHERE tablename = 'raw_payloads'") == 0

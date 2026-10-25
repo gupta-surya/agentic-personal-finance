@@ -1,0 +1,73 @@
+{
+  "errlist": [
+    {"code": "con.auth", "msg": "Authentication required for Demo Bank - Sam", "conn_id": "CON-B"}
+  ],
+  "connections": [
+    {
+      "conn_id": "CON-A",
+      "name": "Demo Bank - Alex",
+      "org_id": "INST-DEMO",
+      "org_url": "https://demo-bank.example",
+      "sfin_url": "https://sfin.demo-bank.example"
+    },
+    {
+      "conn_id": "CON-B",
+      "name": "Demo Bank - Sam",
+      "org_id": "INST-DEMO",
+      "org_url": "https://demo-bank.example",
+      "sfin_url": "https://sfin.demo-bank.example"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "chk-001",
+      "name": "Alex Checking",
+      "conn_id": "CON-A",
+      "currency": "USD",
+      "balance": "1500.00",
+      "available-balance": "1400.00",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "txn-001",
+          "posted": 1773081000,
+          "amount": "-45.10",
+          "description": "CORNER MARKET 0042",
+          "transacted_at": 1773070000,
+          "extra": {"category": "groceries"}
+        },
+        {
+          "id": "txn-002",
+          "posted": 0,
+          "amount": "-6.25",
+          "description": "PENDING COFFEE",
+          "pending": true,
+          "transacted_at": 1774900000
+        }
+      ]
+    },
+    {
+      "id": "chk-001",
+      "name": "Sam Checking",
+      "conn_id": "CON-B",
+      "currency": "USD",
+      "balance": "250.00",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "txn-001",
+          "posted": 1773254400,
+          "amount": "-12.00",
+          "description": "BOOKSHOP",
+          "transacted_at": 1773250000
+        },
+        {
+          "id": "txn-003",
+          "posted": 1773340800,
+          "amount": "1000.00",
+          "description": "PAYROLL"
+        }
+      ]
+    }
+  ]
+}

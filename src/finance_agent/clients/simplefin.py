@@ -1,93 +1,46 @@
-"""SimpleFIN connector: a typed model of the payload plus the client interface.
+"""SimpleFIN connector clients: they fetch bytes and request metadata, nothing more.
 
-Tests only ever use ``FixtureSimpleFinClient``. ``LiveSimpleFinClient`` is a stub
-with no network code in it; it must stay that way until the live connector task.
+Parsing lives in ``finance_agent.ingest.simplefin``. Tests only ever use
+``FixtureSimpleFinClient``. ``LiveSimpleFinClient`` is a stub with no network code
+in it; it must stay that way until the live connector task.
 """
 
-import json
-from decimal import Decimal
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-
-class SimpleFinOrg(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    name: str | None = None
-    domain: str | None = None
-
-
-class SimpleFinTransaction(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    id: str
-    posted: int  # Unix epoch seconds
-    amount: Decimal  # debits negative, credits positive (SimpleFIN convention)
-    description: str
-    pending: bool = False
-    extra: dict[str, Any] = Field(default_factory=dict)
-
-    @field_validator("amount", mode="before")
-    @classmethod
-    def _reject_float(cls, value: object) -> object:
-        if isinstance(value, float):
-            raise ValueError("amount must be a decimal string, never a float")
-        return value
-
-    @property
-    def category(self) -> str | None:
-        # Synthetic-fixture shim: real SimpleFIN has no category field. Categorization
-        # proper is not implemented yet.
-        value = self.extra.get("category")
-        return value if isinstance(value, str) else None
-
-
-class SimpleFinAccount(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    id: str
-    name: str
-    currency: str
-    balance: Decimal
-    org: SimpleFinOrg = Field(default_factory=SimpleFinOrg)
-    transactions: list[SimpleFinTransaction] = Field(default_factory=list)
-
-    @field_validator("balance", mode="before")
-    @classmethod
-    def _reject_float(cls, value: object) -> object:
-        if isinstance(value, float):
-            raise ValueError("balance must be a decimal string, never a float")
-        return value
-
-
-class SimpleFinPayload(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    errors: list[str] = Field(default_factory=list)
-    accounts: list[SimpleFinAccount]
-
-
-def parse_payload(body: str) -> SimpleFinPayload:
-    """Parse a raw SimpleFIN JSON body. JSON numbers become Decimal, not float."""
-    return SimpleFinPayload.model_validate(json.loads(body, parse_float=Decimal))
+from finance_agent.ingest.contract import RawPull
 
 
 class SimpleFinClient(Protocol):
-    def fetch(self) -> str:
-        """Return the raw SimpleFIN account-set JSON body."""
+    def fetch(self) -> RawPull:
+        """Return the exact response bytes and how they were requested."""
         ...
 
 
 class FixtureSimpleFinClient:
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self,
+        path: Path,
+        fetched_at: datetime,
+        requested_version: str | None = None,
+        request_params: dict[str, str] | None = None,
+    ) -> None:
         self._path = path
+        self._fetched_at = fetched_at  # explicit: logic never reads the wall clock
+        self._requested_version = requested_version
+        self._request_params = request_params or {}
 
-    def fetch(self) -> str:
-        return self._path.read_text(encoding="utf-8")
+    def fetch(self) -> RawPull:
+        return RawPull(
+            source="simplefin",
+            body=self._path.read_bytes(),
+            fetched_at=self._fetched_at,
+            requested_version=self._requested_version,
+            request_params=self._request_params,
+        )
 
 
 class LiveSimpleFinClient:
-    def fetch(self) -> str:
+    def fetch(self) -> RawPull:
         raise NotImplementedError("live SimpleFIN access is not implemented")

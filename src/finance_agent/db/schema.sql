@@ -1,8 +1,8 @@
 -- Current-state reference schema. The EXECUTABLE source of truth is the Alembic
--- migrations in db/migrations/versions; tests/test_phase1_schema.py fails if this
+-- migrations in db/migrations/versions; tests/test_schema.py fails if this
 -- file and the migrated schema drift apart. Change both together.
 --
--- Amount sign convention (must match loader.py and every query):
+-- Amount sign convention (must match the normalizers, silver_loader.py and every query):
 --   debits (money out) are negative, credits (money in) are positive,
 --   and spend = -SUM(amount). Refunds are credits, so they net against spend.
 --
@@ -18,24 +18,53 @@
 --
 -- tenant_id is on every table.
 
-CREATE TABLE raw_payloads (
-    id             BIGSERIAL PRIMARY KEY,
-    tenant_id      TEXT        NOT NULL,
-    source         TEXT        NOT NULL,
-    payload        JSONB       NOT NULL,
-    payload_sha256 TEXT        NOT NULL,
-    loaded_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (tenant_id, payload_sha256)
+-- Bronze: the exact bytes of every pull, written before anything is parsed.
+-- parse_status NULL = received, not yet processed.
+CREATE TABLE raw_pulls (
+    id                BIGSERIAL PRIMARY KEY,
+    tenant_id         TEXT        NOT NULL,
+    source            TEXT        NOT NULL,
+    dialect_detected  TEXT,
+    requested_version TEXT,
+    server_versions   JSONB,
+    request_params    JSONB       NOT NULL DEFAULT '{}',
+    http_status       INTEGER,
+    fetched_at        TIMESTAMPTZ NOT NULL,
+    body              BYTEA       NOT NULL,
+    body_sha256       TEXT        NOT NULL,
+    body_json         JSONB,
+    parse_status      TEXT CHECK (parse_status IN ('ok', 'unrecognized', 'invalid')),
+    parse_error       TEXT,
+    UNIQUE (tenant_id, body_sha256)
+);
+
+-- Silver. A connection is one login at one institution. Account ids are only
+-- unique within a connection, so an account is (connection, external_id).
+CREATE TABLE connections (
+    tenant_id     TEXT        NOT NULL,
+    id            BIGSERIAL,
+    source        TEXT        NOT NULL,
+    provider_key  TEXT        NOT NULL,
+    name          TEXT        NOT NULL,
+    org_id        TEXT,
+    org_url       TEXT,
+    sfin_url      TEXT,
+    first_seen_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (tenant_id, id),
+    UNIQUE (tenant_id, source, provider_key)
 );
 
 CREATE TABLE accounts (
-    tenant_id   TEXT    NOT NULL,
-    external_id TEXT    NOT NULL,
-    name        TEXT    NOT NULL,
-    org_name    TEXT,
-    currency    TEXT    NOT NULL,
-    balance     NUMERIC NOT NULL,
-    PRIMARY KEY (tenant_id, external_id)
+    tenant_id     TEXT    NOT NULL,
+    id            BIGSERIAL,
+    connection_id BIGINT  NOT NULL,
+    external_id   TEXT    NOT NULL,
+    name          TEXT    NOT NULL,
+    currency      TEXT    NOT NULL,
+    balance       NUMERIC NOT NULL,
+    PRIMARY KEY (tenant_id, id),
+    UNIQUE (tenant_id, connection_id, external_id),
+    FOREIGN KEY (tenant_id, connection_id) REFERENCES connections (tenant_id, id)
 );
 
 -- Reconciliation evidence: which legs, which rule, what window.
@@ -73,11 +102,15 @@ CREATE TABLE merchant_rules (
         REFERENCES categories (tenant_id, name) ON UPDATE CASCADE
 );
 
+-- Dates are the user's local calendar dates, not UTC. posted_date is NULL only
+-- while a transaction is pending (SimpleFIN sends posted = 0 then).
 CREATE TABLE transactions (
     tenant_id             TEXT    NOT NULL,
-    account_external_id   TEXT    NOT NULL,
+    id                    BIGSERIAL,
+    account_id            BIGINT  NOT NULL,
     external_id           TEXT    NOT NULL,
-    posted_date           DATE    NOT NULL,  -- UTC date of SimpleFIN `posted`
+    posted_date           DATE,
+    transacted_date       DATE,
     amount                NUMERIC NOT NULL,  -- debits negative, credits positive
     description           TEXT    NOT NULL,
     category              TEXT,              -- must exist in this tenant's categories; NULL = uncategorized
@@ -86,11 +119,11 @@ CREATE TABLE transactions (
     transfer_group_id     BIGINT,
     is_internal_transfer  BOOLEAN NOT NULL DEFAULT false,
     category_source       TEXT CHECK (category_source IN ('rule', 'model', 'user')),
-    PRIMARY KEY (tenant_id, account_external_id, external_id),
-    FOREIGN KEY (tenant_id, account_external_id)
-        REFERENCES accounts (tenant_id, external_id),
-    FOREIGN KEY (tenant_id, transfer_group_id)
-        REFERENCES transfer_groups (tenant_id, id),
+    PRIMARY KEY (tenant_id, id),
+    UNIQUE (tenant_id, account_id, external_id),
+    CHECK (posted_date IS NOT NULL OR pending),
+    FOREIGN KEY (tenant_id, account_id) REFERENCES accounts (tenant_id, id),
+    FOREIGN KEY (tenant_id, transfer_group_id) REFERENCES transfer_groups (tenant_id, id),
     CONSTRAINT transactions_category_fkey FOREIGN KEY (tenant_id, category)
         REFERENCES categories (tenant_id, name) ON UPDATE CASCADE
 );
