@@ -91,6 +91,11 @@ class NormalizedBatch(_Frozen):
     transactions: list[NormalizedTransaction]
     errors: list[PullError] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    # What the pull asked for, so the loader knows when an absent pending row means
+    # "gone" and when it just means "not requested" or "outside the window".
+    pending_requested: bool = False
+    window_start: date | None = None  # user-local date; transactions after it were requested
+    window_end: date | None = None  # user-local date; transactions before it were requested
 
 
 class NormalizeResult(_Frozen):
