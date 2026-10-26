@@ -93,7 +93,7 @@ def test_schema_sql_matches_migrations(conn: Connection) -> None:
     conn.execute("DROP SCHEMA IF EXISTS reference CASCADE")
     conn.execute("CREATE SCHEMA reference")
     try:
-        conn.execute("SET search_path TO reference")
+        conn.execute("SET search_path TO reference, public")  # public holds pg_trgm
         conn.execute(schema_sql)
         conn.execute("SET search_path TO public")
         assert _shape(conn, "reference") == _shape(conn, "public")

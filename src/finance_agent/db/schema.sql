@@ -17,6 +17,10 @@
 -- deleting one that is in use is refused.
 --
 -- tenant_id is on every table.
+--
+-- Fuzzy merchant matching needs pg_trgm (it ships with the postgres image). The
+-- migration creates it itself; it is repeated here so this file stands alone.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Bronze: the exact bytes of every pull, written before anything is parsed.
 -- parse_status NULL = received, not yet processed.
@@ -138,6 +142,9 @@ CREATE TABLE merchant_rules (
         REFERENCES categories (tenant_id, name) ON UPDATE CASCADE
 );
 
+CREATE INDEX merchant_rules_merchant_trgm_idx
+    ON merchant_rules USING gin (merchant_normalized gin_trgm_ops);
+
 -- Dates are the user's local calendar dates, not UTC. posted_date is NULL only
 -- while a transaction is pending (SimpleFIN sends posted = 0 then).
 CREATE TABLE transactions (
@@ -155,6 +162,8 @@ CREATE TABLE transactions (
     transfer_group_id     BIGINT,
     is_internal_transfer  BOOLEAN NOT NULL DEFAULT false,
     category_source       TEXT CHECK (category_source IN ('rule', 'model', 'user')),
+    -- the normalized merchant key (categorize.enrich.normalize_merchant); derived
+    merchant_normalized   TEXT,
     -- who decided the transfer state: rule (engine), user (linked or "not a transfer"),
     -- NULL = never decided. The engine only touches NULL and rule rows.
     transfer_source       TEXT CHECK (transfer_source IN ('rule', 'user')),
