@@ -48,6 +48,29 @@ jobs:
       - name: Tests
         run: pytest -q
 
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Generated API types are current
+        run: npm run types:check
+      - name: Types and build
+        run: npm run build
+      - name: No external asset loads in the build
+        run: npm run check:no-external
+      - name: Tests
+        run: npm test
+
   secrets:
     name: secrets
     runs-on: ubuntu-latest

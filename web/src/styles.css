@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/* Design tokens. Light is the default; dark follows the OS unless data-theme forces one.
+   Charts read --chart-1..8, so a renderer never hard-codes a color. */
+:root {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --surface-muted: #f3f3f1;
+  --border: #dcdcd7;
+  --text: #1b1b19;
+  --text-muted: #5c5c57;
+  --focus: #1a5fd0;
+
+  /* Money direction. Always paired with a sign glyph and text, never color alone. */
+  --positive: #0b6b3a;
+  --negative: #b3261e;
+
+  --chart-1: #2a6fdb;
+  --chart-2: #e07b00;
+  --chart-3: #12906f;
+  --chart-4: #b4408c;
+  --chart-5: #7b5cd6;
+  --chart-6: #c2a000;
+  --chart-7: #4d8fa8;
+  --chart-8: #8a8a84;
+  --chart-grid: #e6e6e1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121211;
+    --surface: #1b1b19;
+    --surface-muted: #242422;
+    --border: #3a3a36;
+    --text: #efefeb;
+    --text-muted: #a3a39c;
+    --focus: #6ea2ff;
+    --positive: #4cc38a;
+    --negative: #ff8a80;
+    --chart-1: #6ea2ff;
+    --chart-2: #ffa94d;
+    --chart-3: #3ccfa5;
+    --chart-4: #e27fc0;
+    --chart-5: #a995f0;
+    --chart-6: #e6c84a;
+    --chart-7: #7fc0d9;
+    --chart-8: #a3a39c;
+    --chart-grid: #2e2e2b;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #121211;
+  --surface: #1b1b19;
+  --surface-muted: #242422;
+  --border: #3a3a36;
+  --text: #efefeb;
+  --text-muted: #a3a39c;
+  --focus: #6ea2ff;
+  --positive: #4cc38a;
+  --negative: #ff8a80;
+  --chart-1: #6ea2ff;
+  --chart-2: #ffa94d;
+  --chart-3: #3ccfa5;
+  --chart-4: #e27fc0;
+  --chart-5: #a995f0;
+  --chart-6: #e6c84a;
+  --chart-7: #7fc0d9;
+  --chart-8: #a3a39c;
+  --chart-grid: #2e2e2b;
+}
+
+html {
+  color-scheme: light dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums; /* every amount lines up */
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.money[data-sign="negative"] {
+  color: var(--negative);
+}
+.money[data-sign="positive"] {
+  color: var(--positive);
+}
