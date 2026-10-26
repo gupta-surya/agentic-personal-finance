@@ -5,7 +5,11 @@ import { registerAllRenderers } from "./renderers";
 
 registerAllRenderers();
 
-export const TEMPLATES = [{ id: "cash_flow", label: "Cash flow" }] as const;
+export const TEMPLATES = [
+  { id: "cash_flow", label: "Cash flow" },
+  { id: "spend_over_time", label: "Spending over time" },
+  { id: "spend_breakdown", label: "Spending breakdown" },
+] as const;
 
 export const PERIODS = [
   ["this_month", "This month"],
