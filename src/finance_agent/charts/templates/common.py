@@ -12,7 +12,28 @@ _MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
 _SYMBOLS = {"USD": "$", "EUR": "€", "GBP": "£"}
 
 UNCATEGORIZED = "Uncategorized"
-OTHER = "Other"
+# The folded top-N bucket. Not "Other": a real category is named `other`.
+EVERYTHING_ELSE = "Everything else"
+
+
+def category_label(name: str | None, is_other: bool = False) -> str:
+    """Display name for a category: ``fees_interest`` -> ``Fees interest``."""
+    if is_other:
+        return EVERYTHING_ELSE
+    if name is None:
+        return UNCATEGORIZED
+    spaced = name.replace("_", " ")
+    return spaced[:1].upper() + spaced[1:]
+
+
+def format_share(share: Decimal) -> str:
+    """``Decimal("0.7377")`` -> ``"73.77%"``. Moves the decimal point in the digits;
+    the catalog's share is shown, not recomputed."""
+    whole, _, fraction = format(abs(share), "f").partition(".")
+    fraction = fraction.ljust(2, "0")
+    percent = (whole + fraction[:2]).lstrip("0") or "0"
+    rest = fraction[2:].rstrip("0")
+    return f"{'−' if share < 0 else ''}{percent}{f'.{rest}' if rest else ''}%"
 
 
 def format_money(amount: Decimal, currency: str = "USD") -> str:
