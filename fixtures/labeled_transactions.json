@@ -1,0 +1,2424 @@
+{
+ "errlist": [],
+ "connections": [
+  {
+   "conn_id": "C",
+   "name": "Demo Bank"
+  }
+ ],
+ "accounts": [
+  {
+   "id": "chk",
+   "name": "Demo Checking",
+   "conn_id": "C",
+   "currency": "USD",
+   "balance": "0",
+   "balance-date": 1798718400,
+   "transactions": [
+    {
+     "id": "L001",
+     "posted": 1767268800,
+     "amount": "-92.14",
+     "description": "HULU 03/09/2026",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L002",
+     "posted": 1767268800,
+     "amount": "-114.48",
+     "description": "SHELL OIL 57444121",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L003",
+     "posted": 1767355200,
+     "amount": "-72.67",
+     "description": "Delta Air Lines",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L004",
+     "posted": 1767355200,
+     "amount": "-19.66",
+     "description": "Dominos #1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L005",
+     "posted": 1767528000,
+     "amount": "-76.91",
+     "description": "UBER 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L006",
+     "posted": 1767614400,
+     "amount": "-25.79",
+     "description": "Riverside Dental 0042",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L007",
+     "posted": 1767614400,
+     "amount": "-120.48",
+     "description": "VENMO JOHN",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L008",
+     "posted": 1767787200,
+     "amount": "-86.73",
+     "description": "SPOTIFY",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L009",
+     "posted": 1767873600,
+     "amount": "-111.31",
+     "description": "Corner Market",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L010",
+     "posted": 1767873600,
+     "amount": "-140.32",
+     "description": "UBER EATS",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L011",
+     "posted": 1767960000,
+     "amount": "-52.60",
+     "description": "NORTHSIDE FITNESS",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L012",
+     "posted": 1768046400,
+     "amount": "-30.03",
+     "description": "City Water #88",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L013",
+     "posted": 1768132800,
+     "amount": "-93.10",
+     "description": "Kroger Store 5501",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L014",
+     "posted": 1768305600,
+     "amount": "-91.92",
+     "description": "MCDONALD'S #5501",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L015",
+     "posted": 1768737600,
+     "amount": "-44.38",
+     "description": "CHECK 1043",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L016",
+     "posted": 1768737600,
+     "amount": "-130.06",
+     "description": "NETFLIX",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L017",
+     "posted": 1768824000,
+     "amount": "-15.83",
+     "description": "AIRBNB",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L018",
+     "posted": 1768824000,
+     "amount": "-34.86",
+     "description": "Shell 57444",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L019",
+     "posted": 1768910400,
+     "amount": "37.37",
+     "description": "BOOKWORM #12",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L020",
+     "posted": 1768910400,
+     "amount": "-1850.00",
+     "description": "OAKWOOD PROPERTY MGMT RENT",
+     "extra": {
+      "truth": "rent"
+     }
+    },
+    {
+     "id": "L021",
+     "posted": 1768910400,
+     "amount": "-121.14",
+     "description": "PENN ENERGY 0314",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L022",
+     "posted": 1768996800,
+     "amount": "-43.32",
+     "description": "Sq *Coffee #12",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L023",
+     "posted": 1768996800,
+     "amount": "-16.65",
+     "description": "DELTA DENTAL 0042",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L024",
+     "posted": 1769169600,
+     "amount": "14.86",
+     "description": "HOME DEPOT #1234",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L025",
+     "posted": 1769342400,
+     "amount": "-14.00",
+     "description": "AT&T",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L026",
+     "posted": 1769428800,
+     "amount": "-17.98",
+     "description": "Cineplex #12",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L027",
+     "posted": 1769428800,
+     "amount": "-30.44",
+     "description": "EXXONMOBIL 47512345",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L028",
+     "posted": 1769947200,
+     "amount": "-38.36",
+     "description": "WHOLE FOODS #10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L029",
+     "posted": 1770120000,
+     "amount": "-105.40",
+     "description": "CHEVROLET SERVICE 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L030",
+     "posted": 1770292800,
+     "amount": "-31.38",
+     "description": "CHEVRON #0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L031",
+     "posted": 1770292800,
+     "amount": "-69.50",
+     "description": "Safeway Store 1771",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L032",
+     "posted": 1770379200,
+     "amount": "-74.35",
+     "description": "METRO TRANSIT",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L033",
+     "posted": 1770724800,
+     "amount": "-42.37",
+     "description": "MISC DEBIT",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L034",
+     "posted": 1770724800,
+     "amount": "-139.16",
+     "description": "Publix 0412",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L035",
+     "posted": 1770811200,
+     "amount": "-69.36",
+     "description": "SUBWAY TOKEN VENDING 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L036",
+     "posted": 1770897600,
+     "amount": "-76.37",
+     "description": "Panera Bread 204",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L037",
+     "posted": 1771416000,
+     "amount": "-128.67",
+     "description": "STARBUCKS #1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L038",
+     "posted": 1771675200,
+     "amount": "-140.11",
+     "description": "TST* LUCKY NOODLE 88123",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L039",
+     "posted": 1771848000,
+     "amount": "-43.67",
+     "description": "BOOKWORM #12",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L040",
+     "posted": 1771848000,
+     "amount": "-117.18",
+     "description": "Shell Oil #574",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L041",
+     "posted": 1772020800,
+     "amount": "-49.12",
+     "description": "CHIPOTLE #2040",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L042",
+     "posted": 1772020800,
+     "amount": "-13.97",
+     "description": "DISNEY PLUS",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L043",
+     "posted": 1772107200,
+     "amount": "91.22",
+     "description": "CORNER MARKET 0042",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L044",
+     "posted": 1772193600,
+     "amount": "-82.49",
+     "description": "RIVERSIDE DENTAL",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L045",
+     "posted": 1772280000,
+     "amount": "-35.95",
+     "description": "GREENLEAF GROCERS",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L046",
+     "posted": 1772366400,
+     "amount": "-33.27",
+     "description": "PAYPAL *SPOTIFY",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L047",
+     "posted": 1772452800,
+     "amount": "-33.90",
+     "description": "UBER *EATS",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L048",
+     "posted": 1772625600,
+     "amount": "3200.00",
+     "description": "ACME CORP PAYROLL",
+     "extra": {
+      "truth": "income"
+     }
+    },
+    {
+     "id": "L049",
+     "posted": 1772625600,
+     "amount": "-124.81",
+     "description": "CITY WATER 0314",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L050",
+     "posted": 1772625600,
+     "amount": "-16.16",
+     "description": "DUNKIN #3350",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L051",
+     "posted": 1772712000,
+     "amount": "-21.06",
+     "description": "WHOLE FOODS MARKET #10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L052",
+     "posted": 1772884800,
+     "amount": "-91.90",
+     "description": "McDonald's Store 5501",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L053",
+     "posted": 1773230400,
+     "amount": "-16.98",
+     "description": "HOME DEPOT #1234",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L054",
+     "posted": 1773316800,
+     "amount": "-103.20",
+     "description": "NETFLIX 03/09",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L055",
+     "posted": 1773403200,
+     "amount": "-104.01",
+     "description": "AIRBNB 0042",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L056",
+     "posted": 1773403200,
+     "amount": "-78.85",
+     "description": "CVS/PHARMACY #4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L057",
+     "posted": 1773489600,
+     "amount": "-1850.00",
+     "description": "OAKWOOD PROPERTY MGMT RENT",
+     "extra": {
+      "truth": "rent"
+     }
+    },
+    {
+     "id": "L058",
+     "posted": 1773489600,
+     "amount": "-86.96",
+     "description": "PENN ENERGY AUTOPAY",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L059",
+     "posted": 1773489600,
+     "amount": "-79.99",
+     "description": "WIRE TRANSFER REF 889922",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L060",
+     "posted": 1773576000,
+     "amount": "-133.27",
+     "description": "Delta Dental",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L061",
+     "posted": 1773748800,
+     "amount": "61.33",
+     "description": "KROGER #0421",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L062",
+     "posted": 1773835200,
+     "amount": "-60.89",
+     "description": "BEST BUY #0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L063",
+     "posted": 1773921600,
+     "amount": "-121.50",
+     "description": "AT&T 0042",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L064",
+     "posted": 1774008000,
+     "amount": "-21.40",
+     "description": "CINEPLEX 0073",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L065",
+     "posted": 1774008000,
+     "amount": "-121.70",
+     "description": "ExxonMobil #4751",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L066",
+     "posted": 1774008000,
+     "amount": "-27.92",
+     "description": "SUBWAY #1177",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L067",
+     "posted": 1774180800,
+     "amount": "-56.87",
+     "description": "LYFT",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L068",
+     "posted": 1774267200,
+     "amount": "136.69",
+     "description": "CINEPLEX 0073",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L069",
+     "posted": 1774267200,
+     "amount": "-116.63",
+     "description": "CORNER MARKET 0042",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L070",
+     "posted": 1774353600,
+     "amount": "-98.00",
+     "description": "NORTHSIDE FITNESS",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L071",
+     "posted": 1774526400,
+     "amount": "-94.58",
+     "description": "Whole Foods 10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L072",
+     "posted": 1774612800,
+     "amount": "-54.25",
+     "description": "WALGREENS #4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L073",
+     "posted": 1774699200,
+     "amount": "-72.82",
+     "description": "CHEVROLET SERVICE 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L074",
+     "posted": 1774872000,
+     "amount": "-45.56",
+     "description": "Chevron 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L075",
+     "posted": 1774872000,
+     "amount": "-40.82",
+     "description": "TRADER JOE'S #123",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L076",
+     "posted": 1774958400,
+     "amount": "-102.57",
+     "description": "METRO TRANSIT 5521",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L077",
+     "posted": 1775390400,
+     "amount": "-72.56",
+     "description": "SQ *COFFEE 0471",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L078",
+     "posted": 1775476800,
+     "amount": "-67.17",
+     "description": "POS PURCHASE 77",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L079",
+     "posted": 1775563200,
+     "amount": "81.57",
+     "description": "WHOLE FOODS #10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L080",
+     "posted": 1775736000,
+     "amount": "-141.47",
+     "description": "XFINITY",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L081",
+     "posted": 1775995200,
+     "amount": "-21.25",
+     "description": "Starbucks Store 5501",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L082",
+     "posted": 1776427200,
+     "amount": "-128.49",
+     "description": "Bookworm 0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L083",
+     "posted": 1776600000,
+     "amount": "-20.78",
+     "description": "Chipotle 2040",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L084",
+     "posted": 1776600000,
+     "amount": "-138.19",
+     "description": "Disney Plus 0042",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L085",
+     "posted": 1776859200,
+     "amount": "-45.65",
+     "description": "GREENLEAF GROCERS #3",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L086",
+     "posted": 1777032000,
+     "amount": "-87.24",
+     "description": "Uber Eats 03/09",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L087",
+     "posted": 1777204800,
+     "amount": "3200.00",
+     "description": "ACME CORP PAYROLL",
+     "extra": {
+      "truth": "income"
+     }
+    },
+    {
+     "id": "L088",
+     "posted": 1777204800,
+     "amount": "-5.10",
+     "description": "Dunkin 3350",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L089",
+     "posted": 1777291200,
+     "amount": "-29.00",
+     "description": "Whole Foods Market 10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L090",
+     "posted": 1777550400,
+     "amount": "-26.58",
+     "description": "VERIZON",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L091",
+     "posted": 1777809600,
+     "amount": "-32.60",
+     "description": "Home Depot 1234",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L092",
+     "posted": 1777982400,
+     "amount": "-63.55",
+     "description": "CVS PHARMACY 4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L093",
+     "posted": 1778068800,
+     "amount": "-137.91",
+     "description": "TST* LUCKY NOODLE 88123",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L094",
+     "posted": 1778241600,
+     "amount": "-19.52",
+     "description": "HULU",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L095",
+     "posted": 1778241600,
+     "amount": "57.73",
+     "description": "STARBUCKS #1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L096",
+     "posted": 1778328000,
+     "amount": "-73.89",
+     "description": "DELTA AIR LINES 0062123456789",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L097",
+     "posted": 1778328000,
+     "amount": "-109.12",
+     "description": "DOMINO'S 1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L098",
+     "posted": 1778414400,
+     "amount": "-68.87",
+     "description": "Best Buy 0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L099",
+     "posted": 1778500800,
+     "amount": "-128.37",
+     "description": "UBER",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L100",
+     "posted": 1778587200,
+     "amount": "-46.69",
+     "description": "RIVERSIDE DENTAL",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L101",
+     "posted": 1778587200,
+     "amount": "-26.78",
+     "description": "Subway Store 1177",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L102",
+     "posted": 1778673600,
+     "amount": "133.85",
+     "description": "BEST BUY #0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L103",
+     "posted": 1778760000,
+     "amount": "-98.33",
+     "description": "Lyft #1234",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L104",
+     "posted": 1778846400,
+     "amount": "-94.41",
+     "description": "CORNER MARKET #7",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L105",
+     "posted": 1778932800,
+     "amount": "-69.02",
+     "description": "NORTHSIDE FITNESS 0042",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L106",
+     "posted": 1779019200,
+     "amount": "-95.89",
+     "description": "CITY WATER 0314",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L107",
+     "posted": 1779105600,
+     "amount": "-127.20",
+     "description": "KROGER #0421",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L108",
+     "posted": 1779192000,
+     "amount": "-143.35",
+     "description": "Walgreens Store 4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L109",
+     "posted": 1779364800,
+     "amount": "-17.17",
+     "description": "UNKNOWN MERCHANT XYZ",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L110",
+     "posted": 1779451200,
+     "amount": "-14.52",
+     "description": "Trader Joe's Store 123",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L111",
+     "posted": 1779796800,
+     "amount": "-44.16",
+     "description": "SHELL #574",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L112",
+     "posted": 1779883200,
+     "amount": "-1850.00",
+     "description": "OAKWOOD PROPERTY MGMT RENT",
+     "extra": {
+      "truth": "rent"
+     }
+    },
+    {
+     "id": "L113",
+     "posted": 1779883200,
+     "amount": "-93.88",
+     "description": "PENN ENERGY AUTOPAY",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L114",
+     "posted": 1779969600,
+     "amount": "-100.06",
+     "description": "SQ *COFFEE 0899",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L115",
+     "posted": 1780315200,
+     "amount": "-72.93",
+     "description": "XFINITY 0042",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L116",
+     "posted": 1780401600,
+     "amount": "-67.44",
+     "description": "CINEPLEX 0073",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L117",
+     "posted": 1781006400,
+     "amount": "-125.71",
+     "description": "ATM WITHDRAWAL 0042 MAIN ST",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L118",
+     "posted": 1781006400,
+     "amount": "-75.47",
+     "description": "BOOKWORM #12",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L119",
+     "posted": 1781265600,
+     "amount": "-126.48",
+     "description": "SAFEWAY #1771",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L120",
+     "posted": 1781352000,
+     "amount": "-22.77",
+     "description": "METRO TRANSIT 5521",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L121",
+     "posted": 1781438400,
+     "amount": "-59.51",
+     "description": "GREENLEAF GROCERS",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L122",
+     "posted": 1781611200,
+     "amount": "-46.16",
+     "description": "ZELLE PAYMENT TO J SMITH",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L123",
+     "posted": 1781697600,
+     "amount": "-133.30",
+     "description": "PUBLIX #0412",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L124",
+     "posted": 1781784000,
+     "amount": "3200.00",
+     "description": "ACME CORP PAYROLL",
+     "extra": {
+      "truth": "income"
+     }
+    },
+    {
+     "id": "L125",
+     "posted": 1781784000,
+     "amount": "-26.46",
+     "description": "SUBWAY TOKEN VENDING 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L126",
+     "posted": 1781870400,
+     "amount": "-84.75",
+     "description": "PANERA BREAD #204",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L127",
+     "posted": 1782129600,
+     "amount": "-115.80",
+     "description": "VERIZON 0042",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L128",
+     "posted": 1782648000,
+     "amount": "-70.89",
+     "description": "TST *LUCKY NOODLE",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L129",
+     "posted": 1782907200,
+     "amount": "-92.14",
+     "description": "HULU 03/09/2026",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L130",
+     "posted": 1782907200,
+     "amount": "-114.48",
+     "description": "SHELL OIL 57444121",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L131",
+     "posted": 1782993600,
+     "amount": "-72.67",
+     "description": "Delta Air Lines",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L132",
+     "posted": 1782993600,
+     "amount": "-19.66",
+     "description": "Dominos #1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L133",
+     "posted": 1783166400,
+     "amount": "-76.91",
+     "description": "UBER 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L134",
+     "posted": 1783252800,
+     "amount": "-25.79",
+     "description": "Riverside Dental 0042",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L135",
+     "posted": 1783252800,
+     "amount": "-120.48",
+     "description": "VENMO JOHN",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L136",
+     "posted": 1783425600,
+     "amount": "-86.73",
+     "description": "SPOTIFY",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L137",
+     "posted": 1783512000,
+     "amount": "-111.31",
+     "description": "Corner Market",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L138",
+     "posted": 1783512000,
+     "amount": "-140.32",
+     "description": "UBER EATS",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L139",
+     "posted": 1783598400,
+     "amount": "-52.60",
+     "description": "NORTHSIDE FITNESS",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L140",
+     "posted": 1783684800,
+     "amount": "-30.03",
+     "description": "City Water #88",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L141",
+     "posted": 1783771200,
+     "amount": "-93.10",
+     "description": "Kroger Store 5501",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L142",
+     "posted": 1783944000,
+     "amount": "-91.92",
+     "description": "MCDONALD'S #5501",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L143",
+     "posted": 1784376000,
+     "amount": "-44.38",
+     "description": "CHECK 1043",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L144",
+     "posted": 1784376000,
+     "amount": "-130.06",
+     "description": "NETFLIX",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L145",
+     "posted": 1784462400,
+     "amount": "-15.83",
+     "description": "AIRBNB",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L146",
+     "posted": 1784462400,
+     "amount": "-34.86",
+     "description": "Shell 57444",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L147",
+     "posted": 1784548800,
+     "amount": "37.37",
+     "description": "BOOKWORM #12",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L148",
+     "posted": 1784548800,
+     "amount": "-1850.00",
+     "description": "OAKWOOD PROPERTY MGMT RENT",
+     "extra": {
+      "truth": "rent"
+     }
+    },
+    {
+     "id": "L149",
+     "posted": 1784548800,
+     "amount": "-121.14",
+     "description": "PENN ENERGY 0314",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L150",
+     "posted": 1784635200,
+     "amount": "-43.32",
+     "description": "Sq *Coffee #12",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L151",
+     "posted": 1784635200,
+     "amount": "-16.65",
+     "description": "DELTA DENTAL 0042",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L152",
+     "posted": 1784808000,
+     "amount": "14.86",
+     "description": "HOME DEPOT #1234",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L153",
+     "posted": 1784980800,
+     "amount": "-14.00",
+     "description": "AT&T",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L154",
+     "posted": 1785067200,
+     "amount": "-17.98",
+     "description": "Cineplex #12",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L155",
+     "posted": 1785067200,
+     "amount": "-30.44",
+     "description": "EXXONMOBIL 47512345",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L156",
+     "posted": 1785585600,
+     "amount": "-38.36",
+     "description": "WHOLE FOODS #10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L157",
+     "posted": 1785758400,
+     "amount": "-105.40",
+     "description": "CHEVROLET SERVICE 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L158",
+     "posted": 1785931200,
+     "amount": "-31.38",
+     "description": "CHEVRON #0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L159",
+     "posted": 1785931200,
+     "amount": "-69.50",
+     "description": "Safeway Store 1771",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L160",
+     "posted": 1786017600,
+     "amount": "-74.35",
+     "description": "METRO TRANSIT",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L161",
+     "posted": 1786363200,
+     "amount": "-42.37",
+     "description": "MISC DEBIT",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L162",
+     "posted": 1786363200,
+     "amount": "-139.16",
+     "description": "Publix 0412",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L163",
+     "posted": 1786449600,
+     "amount": "-69.36",
+     "description": "SUBWAY TOKEN VENDING 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L164",
+     "posted": 1786536000,
+     "amount": "-76.37",
+     "description": "Panera Bread 204",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L165",
+     "posted": 1787054400,
+     "amount": "-128.67",
+     "description": "STARBUCKS #1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L166",
+     "posted": 1787313600,
+     "amount": "-140.11",
+     "description": "TST* LUCKY NOODLE 88123",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L167",
+     "posted": 1787486400,
+     "amount": "-43.67",
+     "description": "BOOKWORM #12",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L168",
+     "posted": 1787486400,
+     "amount": "-117.18",
+     "description": "Shell Oil #574",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L169",
+     "posted": 1787659200,
+     "amount": "-49.12",
+     "description": "CHIPOTLE #2040",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L170",
+     "posted": 1787659200,
+     "amount": "-13.97",
+     "description": "DISNEY PLUS",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L171",
+     "posted": 1787745600,
+     "amount": "91.22",
+     "description": "CORNER MARKET 0042",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L172",
+     "posted": 1787832000,
+     "amount": "-82.49",
+     "description": "RIVERSIDE DENTAL",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L173",
+     "posted": 1787918400,
+     "amount": "-35.95",
+     "description": "GREENLEAF GROCERS",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L174",
+     "posted": 1788004800,
+     "amount": "-33.27",
+     "description": "PAYPAL *SPOTIFY",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L175",
+     "posted": 1788091200,
+     "amount": "-33.90",
+     "description": "UBER *EATS",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L176",
+     "posted": 1788264000,
+     "amount": "3200.00",
+     "description": "ACME CORP PAYROLL",
+     "extra": {
+      "truth": "income"
+     }
+    },
+    {
+     "id": "L177",
+     "posted": 1788264000,
+     "amount": "-124.81",
+     "description": "CITY WATER 0314",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L178",
+     "posted": 1788264000,
+     "amount": "-16.16",
+     "description": "DUNKIN #3350",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L179",
+     "posted": 1788350400,
+     "amount": "-21.06",
+     "description": "WHOLE FOODS MARKET #10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L180",
+     "posted": 1788523200,
+     "amount": "-91.90",
+     "description": "McDonald's Store 5501",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L181",
+     "posted": 1788868800,
+     "amount": "-16.98",
+     "description": "HOME DEPOT #1234",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L182",
+     "posted": 1788955200,
+     "amount": "-103.20",
+     "description": "NETFLIX 03/09",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L183",
+     "posted": 1789041600,
+     "amount": "-104.01",
+     "description": "AIRBNB 0042",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L184",
+     "posted": 1789041600,
+     "amount": "-78.85",
+     "description": "CVS/PHARMACY #4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L185",
+     "posted": 1789128000,
+     "amount": "-1850.00",
+     "description": "OAKWOOD PROPERTY MGMT RENT",
+     "extra": {
+      "truth": "rent"
+     }
+    },
+    {
+     "id": "L186",
+     "posted": 1789128000,
+     "amount": "-86.96",
+     "description": "PENN ENERGY AUTOPAY",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L187",
+     "posted": 1789128000,
+     "amount": "-79.99",
+     "description": "WIRE TRANSFER REF 889922",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L188",
+     "posted": 1789214400,
+     "amount": "-133.27",
+     "description": "Delta Dental",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L189",
+     "posted": 1789387200,
+     "amount": "61.33",
+     "description": "KROGER #0421",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L190",
+     "posted": 1789473600,
+     "amount": "-60.89",
+     "description": "BEST BUY #0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L191",
+     "posted": 1789560000,
+     "amount": "-121.50",
+     "description": "AT&T 0042",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L192",
+     "posted": 1789646400,
+     "amount": "-21.40",
+     "description": "CINEPLEX 0073",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L193",
+     "posted": 1789646400,
+     "amount": "-121.70",
+     "description": "ExxonMobil #4751",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L194",
+     "posted": 1789646400,
+     "amount": "-27.92",
+     "description": "SUBWAY #1177",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L195",
+     "posted": 1789819200,
+     "amount": "-56.87",
+     "description": "LYFT",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L196",
+     "posted": 1789905600,
+     "amount": "136.69",
+     "description": "CINEPLEX 0073",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L197",
+     "posted": 1789905600,
+     "amount": "-116.63",
+     "description": "CORNER MARKET 0042",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L198",
+     "posted": 1789992000,
+     "amount": "-98.00",
+     "description": "NORTHSIDE FITNESS",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L199",
+     "posted": 1790164800,
+     "amount": "-94.58",
+     "description": "Whole Foods 10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L200",
+     "posted": 1790251200,
+     "amount": "-54.25",
+     "description": "WALGREENS #4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L201",
+     "posted": 1790337600,
+     "amount": "-72.82",
+     "description": "CHEVROLET SERVICE 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L202",
+     "posted": 1790510400,
+     "amount": "-45.56",
+     "description": "Chevron 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L203",
+     "posted": 1790510400,
+     "amount": "-40.82",
+     "description": "TRADER JOE'S #123",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L204",
+     "posted": 1790596800,
+     "amount": "-102.57",
+     "description": "METRO TRANSIT 5521",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L205",
+     "posted": 1791028800,
+     "amount": "-72.56",
+     "description": "SQ *COFFEE 0471",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L206",
+     "posted": 1791115200,
+     "amount": "-67.17",
+     "description": "POS PURCHASE 77",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L207",
+     "posted": 1791201600,
+     "amount": "81.57",
+     "description": "WHOLE FOODS #10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L208",
+     "posted": 1791374400,
+     "amount": "-141.47",
+     "description": "XFINITY",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L209",
+     "posted": 1791633600,
+     "amount": "-21.25",
+     "description": "Starbucks Store 5501",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L210",
+     "posted": 1792065600,
+     "amount": "-128.49",
+     "description": "Bookworm 0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L211",
+     "posted": 1792238400,
+     "amount": "-20.78",
+     "description": "Chipotle 2040",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L212",
+     "posted": 1792238400,
+     "amount": "-138.19",
+     "description": "Disney Plus 0042",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L213",
+     "posted": 1792497600,
+     "amount": "-45.65",
+     "description": "GREENLEAF GROCERS #3",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L214",
+     "posted": 1792670400,
+     "amount": "-87.24",
+     "description": "Uber Eats 03/09",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L215",
+     "posted": 1792843200,
+     "amount": "3200.00",
+     "description": "ACME CORP PAYROLL",
+     "extra": {
+      "truth": "income"
+     }
+    },
+    {
+     "id": "L216",
+     "posted": 1792843200,
+     "amount": "-5.10",
+     "description": "Dunkin 3350",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L217",
+     "posted": 1792929600,
+     "amount": "-29.00",
+     "description": "Whole Foods Market 10234",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L218",
+     "posted": 1793188800,
+     "amount": "-26.58",
+     "description": "VERIZON",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L219",
+     "posted": 1793448000,
+     "amount": "-32.60",
+     "description": "Home Depot 1234",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L220",
+     "posted": 1793620800,
+     "amount": "-63.55",
+     "description": "CVS PHARMACY 4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L221",
+     "posted": 1793707200,
+     "amount": "-137.91",
+     "description": "TST* LUCKY NOODLE 88123",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L222",
+     "posted": 1793880000,
+     "amount": "-19.52",
+     "description": "HULU",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L223",
+     "posted": 1793880000,
+     "amount": "57.73",
+     "description": "STARBUCKS #1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L224",
+     "posted": 1793966400,
+     "amount": "-73.89",
+     "description": "DELTA AIR LINES 0062123456789",
+     "extra": {
+      "truth": "travel"
+     }
+    },
+    {
+     "id": "L225",
+     "posted": 1793966400,
+     "amount": "-109.12",
+     "description": "DOMINO'S 1234",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L226",
+     "posted": 1794052800,
+     "amount": "-68.87",
+     "description": "Best Buy 0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L227",
+     "posted": 1794139200,
+     "amount": "-128.37",
+     "description": "UBER",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L228",
+     "posted": 1794225600,
+     "amount": "-46.69",
+     "description": "RIVERSIDE DENTAL",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L229",
+     "posted": 1794225600,
+     "amount": "-26.78",
+     "description": "Subway Store 1177",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L230",
+     "posted": 1794312000,
+     "amount": "133.85",
+     "description": "BEST BUY #0042",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L231",
+     "posted": 1794398400,
+     "amount": "-98.33",
+     "description": "Lyft #1234",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L232",
+     "posted": 1794484800,
+     "amount": "-94.41",
+     "description": "CORNER MARKET #7",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L233",
+     "posted": 1794571200,
+     "amount": "-69.02",
+     "description": "NORTHSIDE FITNESS 0042",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "L234",
+     "posted": 1794657600,
+     "amount": "-95.89",
+     "description": "CITY WATER 0314",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L235",
+     "posted": 1794744000,
+     "amount": "-127.20",
+     "description": "KROGER #0421",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L236",
+     "posted": 1794830400,
+     "amount": "-143.35",
+     "description": "Walgreens Store 4321",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "L237",
+     "posted": 1795003200,
+     "amount": "-17.17",
+     "description": "UNKNOWN MERCHANT XYZ",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L238",
+     "posted": 1795089600,
+     "amount": "-14.52",
+     "description": "Trader Joe's Store 123",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L239",
+     "posted": 1795435200,
+     "amount": "-44.16",
+     "description": "SHELL #574",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L240",
+     "posted": 1795521600,
+     "amount": "-1850.00",
+     "description": "OAKWOOD PROPERTY MGMT RENT",
+     "extra": {
+      "truth": "rent"
+     }
+    },
+    {
+     "id": "L241",
+     "posted": 1795521600,
+     "amount": "-93.88",
+     "description": "PENN ENERGY AUTOPAY",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L242",
+     "posted": 1795608000,
+     "amount": "-100.06",
+     "description": "SQ *COFFEE 0899",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L243",
+     "posted": 1795953600,
+     "amount": "-72.93",
+     "description": "XFINITY 0042",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L244",
+     "posted": 1796040000,
+     "amount": "-67.44",
+     "description": "CINEPLEX 0073",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "L245",
+     "posted": 1796644800,
+     "amount": "-125.71",
+     "description": "ATM WITHDRAWAL 0042 MAIN ST",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L246",
+     "posted": 1796644800,
+     "amount": "-75.47",
+     "description": "BOOKWORM #12",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "L247",
+     "posted": 1796904000,
+     "amount": "-126.48",
+     "description": "SAFEWAY #1771",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L248",
+     "posted": 1796990400,
+     "amount": "-22.77",
+     "description": "METRO TRANSIT 5521",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L249",
+     "posted": 1797076800,
+     "amount": "-59.51",
+     "description": "GREENLEAF GROCERS",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L250",
+     "posted": 1797249600,
+     "amount": "-46.16",
+     "description": "ZELLE PAYMENT TO J SMITH",
+     "extra": {
+      "truth": null
+     }
+    },
+    {
+     "id": "L251",
+     "posted": 1797336000,
+     "amount": "-133.30",
+     "description": "PUBLIX #0412",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "L252",
+     "posted": 1797422400,
+     "amount": "3200.00",
+     "description": "ACME CORP PAYROLL",
+     "extra": {
+      "truth": "income"
+     }
+    },
+    {
+     "id": "L253",
+     "posted": 1797422400,
+     "amount": "-26.46",
+     "description": "SUBWAY TOKEN VENDING 0042",
+     "extra": {
+      "truth": "transport"
+     }
+    },
+    {
+     "id": "L254",
+     "posted": 1797508800,
+     "amount": "-84.75",
+     "description": "PANERA BREAD #204",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "L255",
+     "posted": 1797768000,
+     "amount": "-115.80",
+     "description": "VERIZON 0042",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "L256",
+     "posted": 1798286400,
+     "amount": "-70.89",
+     "description": "TST *LUCKY NOODLE",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "N01",
+     "posted": 1785844800,
+     "amount": "-23.40",
+     "description": "GREENLEAF GROCER",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "N02",
+     "posted": 1787140800,
+     "amount": "-41.12",
+     "description": "CORNER MARKETS",
+     "extra": {
+      "truth": "groceries"
+     }
+    },
+    {
+     "id": "N03",
+     "posted": 1788350400,
+     "amount": "-39.00",
+     "description": "NORTHSIDE FITNES",
+     "extra": {
+      "truth": "subscriptions"
+     }
+    },
+    {
+     "id": "N04",
+     "posted": 1789473600,
+     "amount": "-27.85",
+     "description": "LUCKY NOODLES",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "N05",
+     "posted": 1790856000,
+     "amount": "-120.00",
+     "description": "RIVERSIDE DENTAL CARE",
+     "extra": {
+      "truth": "health"
+     }
+    },
+    {
+     "id": "N06",
+     "posted": 1791806400,
+     "amount": "-96.30",
+     "description": "PENN ENERGY AUTOPAYMENT",
+     "extra": {
+      "truth": "utilities"
+     }
+    },
+    {
+     "id": "N07",
+     "posted": 1792497600,
+     "amount": "-6.45",
+     "description": "STARBUCK",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "N08",
+     "posted": 1793707200,
+     "amount": "-58.20",
+     "description": "RIVERSIDE DENTAL SUPPLY",
+     "extra": {
+      "truth": "shopping"
+     }
+    },
+    {
+     "id": "N09",
+     "posted": 1794312000,
+     "amount": "-72.00",
+     "description": "CITY WATER PARK",
+     "extra": {
+      "truth": "entertainment"
+     }
+    },
+    {
+     "id": "N10",
+     "posted": 1794916800,
+     "amount": "-31.50",
+     "description": "CINEPLEX BAR",
+     "extra": {
+      "truth": "dining"
+     }
+    },
+    {
+     "id": "N11",
+     "posted": 1796212800,
+     "amount": "-64.99",
+     "description": "NORTHSIDE FITNESS APPAREL",
+     "extra": {
+      "truth": "shopping"
+     }
+    }
+   ]
+  }
+ ]
+}
