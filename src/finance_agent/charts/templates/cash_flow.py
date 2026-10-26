@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict
 
 from finance_agent.charts.period import Period, resolve_period
 from finance_agent.charts.registry import Template
-from finance_agent.charts.spec import Annotation, Assumption, ChartSpec, Point, Series, Table
+from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
     format_money,
     month_label,
@@ -35,10 +35,11 @@ class CashFlowParams(BaseModel):
 def _title(net: Decimal | None, span: str, currency: str) -> str:
     if net is None:
         return f"Cash flow, {span}"
+    # The net is quoted exactly as the catalog returned it; no figure is derived here.
     if net < 0:
-        return f"You spent {format_money(-net, currency)} more than you earned, {span}"
+        return f"You spent more than you earned, {span}: net {format_money(net, currency)}"
     if net > 0:
-        return f"You earned {format_money(net, currency)} more than you spent, {span}"
+        return f"You earned more than you spent, {span}: net {format_money(net, currency)}"
     return f"Income and spending matched, {span}"
 
 
@@ -54,7 +55,6 @@ def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartS
     cur = params.currency
     span = span_label(rows[0].month, rows[-1].month) if rows else period.label
     series: list[Series] = []
-    annotations: list[Annotation] = []
     if rows:
         series = [
             Series(
@@ -86,14 +86,6 @@ def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartS
                 points=[Point(x=r.month.isoformat(), y=r.running_net) for r in running.rows],
             ),
         ]
-        annotations = [
-            Annotation(
-                kind="reference_line",
-                label="Zero",
-                result_id=result.result_id,
-                y=Decimal(0),
-            )
-        ]
 
     return ChartSpec(
         template_id="cash_flow",
@@ -101,7 +93,6 @@ def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartS
         params=params.model_dump(mode="json"),
         period=period,
         series=series,
-        annotations=annotations,
         assumptions=[
             Assumption(key="currency", label="Currency", value=cur, source="default"),
             Assumption(key="interval", label="Interval", value="Monthly", source="default"),

@@ -28,8 +28,8 @@ afterEach(() => clearRenderers());
 const spec: ChartSpec = {
   ...swatchSpec,
   template_id: "cash_flow",
-  title: "You spent $210.75 more than you earned, Mar 2026",
-  annotations: [{ kind: "reference_line", label: "Zero", result_id: "res_7f3b", y: "0" }],
+  title: "You spent more than you earned, Mar 2026: net −$210.75",
+  annotations: [],
   series: [
     ...swatchSpec.series,
     {
@@ -61,6 +61,16 @@ describe("CashFlowRenderer", () => {
 
     const labels = [...container.querySelectorAll("svg text")].map((t) => t.textContent);
     expect(labels).toContain("−$210.75");
+  });
+
+  it("writes the marker and axis in the spec's currency, not dollars", () => {
+    const euro: ChartSpec = { ...spec, params: { ...spec.params, currency: "EUR" } };
+    const { container } = render(<ChartFrame state={{ status: "ready", spec: euro }} />);
+
+    const labels = [...container.querySelectorAll("svg text")].map((t) => t.textContent ?? "");
+    expect(labels).toContain("−€210.75");
+    expect(labels.filter((t) => t.includes("$"))).toEqual([]);
+    expect(labels.some((t) => t.includes("€"))).toBe(true);
   });
 
   it("keeps the exact running net in the data table", () => {

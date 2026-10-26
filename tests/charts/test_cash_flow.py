@@ -40,13 +40,17 @@ def points(spec: ChartSpec, series_id: str) -> list[tuple[str, Decimal | None]]:
 def test_golden_overspent_month_from_the_contract_example() -> None:
     spec = render(MARCH, contract_example_catalog())
 
-    assert spec.title == "You spent $210.75 more than you earned, Mar 2026"
+    assert spec.title == "You spent more than you earned, Mar 2026: net −$210.75"
     assert points(spec, "inflow") == [("2026-03-01", Decimal("3200.00"))]
     assert points(spec, "outflow") == [("2026-03-01", Decimal("3410.75"))]
     assert points(spec, "net") == [("2026-03-01", Decimal("-210.75"))]
     assert spec.table.rows == [["Mar 2026", "$3,200.00", "$3,410.75", "−$210.75", "−$210.75"]]
-    zero = spec.annotations[0]
-    assert (zero.kind, zero.y, zero.x, zero.label) == ("reference_line", Decimal("0"), None, "Zero")
+
+
+def test_the_builder_claims_no_figure_that_is_not_in_a_cited_result() -> None:
+    """The zero baseline is drawn by the renderer; it is not an annotation citing a result."""
+    spec = render(MARCH, contract_example_catalog())
+    assert spec.annotations == []
 
 
 def test_every_plotted_value_comes_from_a_cited_result() -> None:
@@ -58,7 +62,7 @@ def test_every_plotted_value_comes_from_a_cited_result() -> None:
     assert points(spec, "inflow") == [(r.month.isoformat(), r.inflow) for r in expected.rows]
     assert points(spec, "outflow") == [(r.month.isoformat(), r.outflow) for r in expected.rows]
     assert points(spec, "net") == [(r.month.isoformat(), r.net) for r in expected.rows]
-    cited = {s.result_id for s in spec.series} | {a.result_id for a in spec.annotations}
+    cited = {s.result_id for s in spec.series}
     assert cited == {s.result_id for s in spec.sources}
 
 
@@ -77,7 +81,7 @@ def test_title_states_the_finding_from_the_catalog_total() -> None:
     spec = render({"preset": "last_6_months"})
 
     assert spec.title == (
-        f"You earned ${expected.totals['net']:,} more than you spent, Apr 2026 – Sep 2026"
+        f"You earned more than you spent, Apr 2026 – Sep 2026: net ${expected.totals['net']:,}"
     )
 
 
@@ -123,4 +127,4 @@ def test_served_over_http_with_string_money() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["series"][2]["points"][0]["y"] == "-210.75"
-    assert body["title"] == "You spent $210.75 more than you earned, Mar 2026"
+    assert body["title"] == "You spent more than you earned, Mar 2026: net −$210.75"

@@ -1,5 +1,5 @@
-import type { Series } from "../api/types";
-import { axisMoney, pivotSeries } from "./chartData";
+import type { ChartSpec, Series } from "../api/types";
+import { axisMoney, pivotSeries, specCurrency } from "./chartData";
 
 const series = (id: string, ys: [string, string | null][]): Series => ({
   id,
@@ -32,9 +32,23 @@ describe("axisMoney", () => {
   it.each([
     [0, "$0"],
     [500, "$500"],
-    [1500, "$1.5k"],
-    [-2000, "−$2k"],
+    [1500, "$1,500"],
+    [-2000, "−$2,000"],
+    [1127.5, "$1,127.50"],
   ])("%s -> %s", (value, expected) => {
     expect(axisMoney(value)).toBe(expected);
+  });
+
+  it("uses the spec's currency, never a hard-coded dollar sign", () => {
+    expect(axisMoney(2000, "EUR")).toBe("€2,000");
+    expect(axisMoney(-500, "GBP")).toBe("−£500");
+  });
+});
+
+describe("specCurrency", () => {
+  it("reads the currency the builder echoed, defaulting to USD", () => {
+    const base = { params: {} } as ChartSpec;
+    expect(specCurrency({ ...base, params: { currency: "EUR" } })).toBe("EUR");
+    expect(specCurrency(base)).toBe("USD");
   });
 });

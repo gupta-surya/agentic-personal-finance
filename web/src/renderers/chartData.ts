@@ -1,5 +1,5 @@
 import type { ChartSpec, Series } from "../api/types";
-import { toNumber } from "../lib/money";
+import { formatMoney, toNumber } from "../lib/money";
 
 /** One x position across every series: numbers for placing marks, the original strings
  *  for labels and tooltips. This is the toChartRows convention. */
@@ -28,9 +28,16 @@ export function seriesLabel(spec: ChartSpec, id: string): string {
   return spec.series.find((s) => s.id === id)?.label ?? id;
 }
 
-/** Compact axis labels. Axis ticks are scale marks, not figures about the data. */
-export function axisMoney(value: number): string {
-  const sign = value < 0 ? "−" : "";
-  const abs = Math.abs(value);
-  return `${sign}$${abs >= 1000 ? `${+(abs / 1000).toFixed(1)}k` : abs}`;
+/** The spec's currency (the builder echoes it in params); USD if absent. */
+export function specCurrency(spec: ChartSpec): string {
+  const currency = spec.params.currency;
+  return typeof currency === "string" ? currency : "USD";
+}
+
+/** An axis tick label. Ticks are positions the chart library picked on its scale, not
+ *  figures about the data, so they are only formatted: whole units, in the spec's
+ *  currency, with no division or rounding. */
+export function axisMoney(value: number, currency = "USD"): string {
+  const text = Number.isInteger(value) ? String(value) : value.toFixed(2);
+  return formatMoney(text, currency).replace(/\.00$/, "");
 }
