@@ -11,3 +11,9 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Local tooling state and private docs (never committed)
+scratch/
+.claude/worktrees/
+.claude/settings.local.json
+CLAUDE.md
