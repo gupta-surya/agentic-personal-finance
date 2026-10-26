@@ -1,6 +1,7 @@
 """User decisions: link, un-link, confirm, roles; and the low-confidence review list."""
 
 import json
+from collections.abc import Callable
 from datetime import UTC, date
 from decimal import Decimal
 from typing import Any
@@ -316,3 +317,57 @@ def test_the_data_version_changes_with_decisions_and_not_without(conn: Connectio
 
     assert len({v0, v1, v2}) == 3
     assert data_stamp(conn, "nobody")[1].year == 1970
+
+
+# --- review-driven hardening ----------------------------------------------
+
+
+def test_linking_over_a_user_owned_group_is_refused_and_changes_nothing(conn: Connection) -> None:
+    ingest_file(conn, TENANT, "simplefin_transfers.json")
+    link_as_transfer(conn, TENANT, _id(conn, "t10a"), _id(conn, "s10a"))  # the user's group
+
+    with pytest.raises(ValueError, match="already in a transfer you decided"):
+        link_as_transfer(conn, TENANT, _id(conn, "t10a"), _id(conn, "s10b"))
+
+    assert _state(conn, "t10a", "s10a") == [(True, True, "user"), (True, True, "user")]
+    assert _state(conn, "s10b") == [(False, False, None)]
+
+
+@pytest.mark.parametrize("action", ["reconcile", "mark_not_transfer", "link", "confirm"])
+def test_reconcile_and_actions_wait_for_the_tenant_lock(conn: Connection, action: str) -> None:
+    import threading
+
+    import psycopg
+
+    from finance_agent.reconcile.match import lock_tenant
+    from tests.helpers import database_url
+
+    ingest_file(conn, TENANT, "simplefin_transfers.json")
+    reconcile(conn, TENANT)
+    t07, t06, s06 = _id(conn, "t07"), _id(conn, "t06"), _id(conn, "s06")
+    group = conn.execute("SELECT min(id) FROM transfer_groups").fetchone()
+    assert group is not None
+    calls: dict[str, Callable[[], object]] = {
+        "reconcile": lambda: reconcile(conn, TENANT),
+        "mark_not_transfer": lambda: mark_not_transfer(conn, TENANT, t07),
+        "link": lambda: link_as_transfer(conn, TENANT, t06, s06),
+        "confirm": lambda: confirm_transfer(conn, TENANT, int(group[0])),
+    }
+    errors: list[BaseException] = []
+
+    def run() -> None:
+        try:
+            calls[action]()
+        except BaseException as error:  # surfaced below
+            errors.append(error)
+
+    with psycopg.connect(database_url()) as holder:  # a second session holds the lock
+        lock_tenant(holder, TENANT)
+        thread = threading.Thread(target=run)
+        thread.start()
+        thread.join(timeout=0.7)
+        assert thread.is_alive(), f"{action} did not wait for the tenant lock"
+        holder.commit()  # releases the lock
+        thread.join(timeout=10)
+
+    assert not thread.is_alive() and errors == []

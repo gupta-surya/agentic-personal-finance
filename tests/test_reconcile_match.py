@@ -1,7 +1,7 @@
 """Transfer matching: pure pairing rules, then the fixture end to end against Postgres."""
 
 import json
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -9,6 +9,7 @@ import pytest
 
 from finance_agent.db.loader import Connection
 from finance_agent.ingest.pipeline import ingest
+from finance_agent.reconcile.actions import mark_not_transfer
 from finance_agent.reconcile.match import (
     WINDOW_DAYS,
     Leg,
@@ -297,3 +298,122 @@ def test_pending_rows_and_custom_currency_accounts_never_match(conn: Connection)
     assert frozenset({"t03", "s03"}) not in matched
     assert frozenset({"t11", "w11"}) not in matched
     assert frozenset({"t04", "c04"}) in matched
+
+
+# --- DB-level edge cases and the review list ------------------------------
+
+
+def _body(*accounts: tuple[str, str, list[dict[str, Any]]]) -> str:
+    """A v2 body: (account id, currency, transactions) tuples under one connection."""
+    return json.dumps(
+        {
+            "errlist": [],
+            "connections": [{"conn_id": "C", "name": "Bank"}],
+            "accounts": [
+                {
+                    "id": acct,
+                    "name": f"Acct {acct}",
+                    "conn_id": "C",
+                    "currency": currency,
+                    "balance": "0",
+                    "balance-date": 1774958400,
+                    "transactions": txns,
+                }
+                for acct, currency, txns in accounts
+            ],
+        }
+    )
+
+
+def _t(txn_id: str, day: int, amount: str, desc: str) -> dict[str, Any]:
+    posted = int(datetime(2026, 3, day, 12, tzinfo=UTC).timestamp())
+    return {"id": txn_id, "posted": posted, "amount": amount, "description": desc}
+
+
+def _ids2(conn: Connection) -> dict[str, int]:
+    return {r[0]: r[1] for r in conn.execute("SELECT external_id, id FROM transactions").fetchall()}
+
+
+def test_a_coincidental_match_at_the_window_edge_is_low_confidence_and_can_be_rejected(
+    conn: Connection,
+) -> None:
+    body = _body(
+        ("A", "USD", [_t("out", 3, "-250.00", "BOOKSTORE")]),
+        ("B", "USD", [_t("in", 10, "250.00", "REFUND DEPOSIT")]),  # exactly 7 days later
+    )
+    ingest(conn, TENANT, pull_from_text(body), UTC_TZ)
+
+    first = reconcile(conn, TENANT)
+    assert (first.matched, first.matched_low) == (1, 1)
+
+    mark_not_transfer(conn, TENANT, _ids2(conn)["out"])
+    second = reconcile(conn, TENANT)
+
+    assert (second.matched, second.dissolved) == (0, 0)
+    assert _state(conn)["out"] == (False, "user", None)
+    assert _state(conn)["in"] == (False, "user", None)
+
+
+def test_eight_days_apart_does_not_match(conn: Connection) -> None:
+    body = _body(
+        ("A", "USD", [_t("out", 3, "-250.00", "TRANSFER")]),
+        ("B", "USD", [_t("in", 11, "250.00", "TRANSFER")]),
+    )
+    ingest(conn, TENANT, pull_from_text(body), UTC_TZ)
+
+    assert reconcile(conn, TENANT).matched == 0
+
+
+def test_mixed_currencies_and_same_account_opposites_never_match(conn: Connection) -> None:
+    body = _body(
+        (
+            "A",
+            "USD",
+            [_t("usd_out", 3, "-10.00", "TRANSFER"), _t("same_in", 3, "10.00", "TRANSFER")],
+        ),
+        ("B", "EUR", [_t("eur_in", 3, "10.00", "TRANSFER")]),
+    )
+    ingest(conn, TENANT, pull_from_text(body), UTC_TZ)
+
+    result = reconcile(conn, TENANT)
+
+    assert (result.matched, result.ambiguous) == (0, 0)
+    assert not any(internal for internal, _, _ in _state(conn).values())
+
+
+def test_the_review_list_is_ordered_by_posted_date_then_group_id(conn: Connection) -> None:
+    from finance_agent.reconcile.review import list_low_confidence_matches
+
+    # Inserted late-first, so group ids run opposite to dates; two pairs share a date.
+    body = _body(
+        (
+            "A",
+            "USD",
+            [
+                _t("late_out", 20, "-30.00", "x"),
+                _t("early_out", 5, "-10.00", "x"),
+                _t("tie1_out", 12, "-21.00", "x"),
+                _t("tie2_out", 12, "-22.00", "x"),
+            ],
+        ),
+        (
+            "B",
+            "USD",
+            [
+                _t("late_in", 20, "30.00", "y"),
+                _t("early_in", 5, "10.00", "y"),
+                _t("tie1_in", 12, "21.00", "y"),
+                _t("tie2_in", 12, "22.00", "y"),
+            ],
+        ),
+    )
+    ingest(conn, TENANT, pull_from_text(body), UTC_TZ)
+    reconcile(conn, TENANT)
+
+    rows = list_low_confidence_matches(conn, TENANT).rows
+
+    assert rows is not None
+    assert [str(r.amount) for r in rows] == ["10.00", "21.00", "22.00", "30.00"]
+    assert [r.group_id for r in rows[1:3]] == sorted(r.group_id for r in rows[1:3])
+    group_ids = {r[0] for r in conn.execute("SELECT id FROM transfer_groups").fetchall()}
+    assert {r.group_id for r in rows} == group_ids

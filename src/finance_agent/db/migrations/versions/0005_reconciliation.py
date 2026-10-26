@@ -50,8 +50,14 @@ def upgrade() -> None:
             ADD COLUMN transfer_source TEXT CHECK (transfer_source IN ('rule', 'user'))
         """
     )
+    # Legs of a group inherit who made it, so a user's group is never re-matched.
     op.execute(
-        "UPDATE transactions SET transfer_source = 'rule' WHERE transfer_group_id IS NOT NULL"
+        """
+        UPDATE transactions t
+        SET transfer_source = CASE g.source WHEN 'user' THEN 'user' ELSE 'rule' END
+        FROM transfer_groups g
+        WHERE g.tenant_id = t.tenant_id AND g.id = t.transfer_group_id
+        """
     )
 
     op.execute(

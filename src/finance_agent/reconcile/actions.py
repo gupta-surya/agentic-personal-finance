@@ -7,7 +7,7 @@ Every action marks what it touches as user-decided (``transfer_source = 'user'``
 from psycopg.types.json import Jsonb
 
 from finance_agent.db.loader import Connection
-from finance_agent.reconcile.match import dissolve_group
+from finance_agent.reconcile.match import dissolve_group, lock_tenant
 
 ROLES: tuple[str, ...] = ("on_budget", "credit", "loan", "investment")
 
@@ -44,6 +44,7 @@ def mark_not_transfer(conn: Connection, tenant_id: str, txn_id: int) -> None:
     """The user says this is not a transfer. If it was half of a group, the group is
     dissolved and both legs are marked user-decided, so neither is re-matched."""
     with conn.transaction():
+        lock_tenant(conn, tenant_id)
         group_id = _leg_group(conn, tenant_id, txn_id)
         leg_ids = [txn_id]
         if group_id is not None:
@@ -69,11 +70,14 @@ def link_as_transfer(conn: Connection, tenant_id: str, txn_a: int, txn_b: int) -
     """The user says these two rows are the legs of one transfer. Returns the group id.
 
     The legs must be posted, in different accounts, in the same currency, with exactly
-    opposite amounts. A leg already in a group leaves it (that group is dissolved).
+    opposite amounts. A leg already in an engine-made group leaves it (that group is
+    dissolved); a leg in a group the user decided is refused, so a user decision is never
+    wiped silently.
     """
     if txn_a == txn_b:
         raise ValueError("a transfer needs two different transactions")
     with conn.transaction():
+        lock_tenant(conn, tenant_id)
         rows = conn.execute(
             """
             SELECT t.id, t.account_id, a.currency, t.amount, t.posted_date, t.pending
@@ -98,8 +102,19 @@ def link_as_transfer(conn: Connection, tenant_id: str, txn_a: int, txn_b: int) -
 
         for txn_id in (txn_a, txn_b):
             existing = _leg_group(conn, tenant_id, txn_id)
-            if existing is not None:
-                dissolve_group(conn, tenant_id, existing)
+            if existing is None:
+                continue
+            owner = conn.execute(
+                "SELECT source FROM transfer_groups WHERE tenant_id = %s AND id = %s",
+                (tenant_id, existing),
+            ).fetchone()
+            if owner is not None and owner[0] == "user":
+                # Dissolving it would wipe the user's decision about the other leg.
+                raise ValueError(
+                    "that transaction is already in a transfer you decided; "
+                    "call mark_not_transfer on it first"
+                )
+            dissolve_group(conn, tenant_id, existing)
 
         gap = abs((out_leg[4] - in_leg[4]).days)
         evidence = {
@@ -135,6 +150,7 @@ def confirm_transfer(conn: Connection, tenant_id: str, group_id: int) -> None:
     """The user confirms a match. The group becomes user-owned, so the engine never
     touches it again, and it leaves the low-confidence review list."""
     with conn.transaction():
+        lock_tenant(conn, tenant_id)
         row = conn.execute(
             "SELECT 1 FROM transfer_groups WHERE tenant_id = %s AND id = %s",
             (tenant_id, group_id),

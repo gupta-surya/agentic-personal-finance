@@ -171,3 +171,28 @@ def test_a_negative_balance_or_a_card_like_name_does_not_change_the_role(
         ("Demo Checking", Decimal("4210.55"), "on_budget"),
         ("Demo Rewards Card", Decimal("-612.37"), "on_budget"),
     ]
+
+
+def test_backfill_keeps_a_users_groups_user_owned(conn: Connection) -> None:
+    ingest_file(conn, TENANT, "simplefin_demo.json")
+    alembic("downgrade", "0004")
+    for source, legs in (("user", ("chk-txn-002", "chk-txn-003")), ("rule", ("chk-txn-001",))):
+        group = _one(
+            conn,
+            "INSERT INTO transfer_groups (tenant_id, rule, source) VALUES (%s, 'old', %s) "
+            "RETURNING id",
+            TENANT,
+            source,
+        )[0]
+        conn.execute(
+            "UPDATE transactions SET transfer_group_id = %s, is_internal_transfer = true "
+            "WHERE external_id = ANY(%s)",
+            (group, list(legs)),
+        )
+
+    alembic("upgrade", "head")
+
+    states = _pairs(conn, "SELECT external_id, transfer_source FROM transactions")
+    assert states["chk-txn-002"] == states["chk-txn-003"] == "user"
+    assert states["chk-txn-001"] == "rule"
+    assert [v for k, v in states.items() if not k.startswith("chk-txn-00")] == [None] * 9

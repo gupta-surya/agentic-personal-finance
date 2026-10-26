@@ -182,9 +182,20 @@ def dissolve_group(conn: Connection, tenant_id: str, group_id: int) -> None:
     )
 
 
+def lock_tenant(conn: Connection, tenant_id: str) -> None:
+    """Serialize reconciliation and transfer decisions for one tenant.
+
+    A transaction-scoped advisory lock: ``reconcile`` and every user action take it first,
+    so ``reconcile`` can never read candidates, have a user decide one of them, and then
+    write over that decision. The lock is released when the transaction ends.
+    """
+    conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (tenant_id,))
+
+
 def reconcile(conn: Connection, tenant_id: str) -> ReconcileResult:
     """Match transfer legs for a tenant. One database transaction; safe to re-run."""
     with conn.transaction():
+        lock_tenant(conn, tenant_id)
         pairing = pair_legs(_candidate_legs(conn, tenant_id))
         existing = _rule_groups(conn, tenant_id)
         desired = {pair.key: pair for pair in pairing.pairs}
@@ -225,6 +236,7 @@ def reconcile(conn: Connection, tenant_id: str) -> ReconcileResult:
                 UPDATE transactions
                 SET transfer_group_id = %s, is_internal_transfer = true, transfer_source = 'rule'
                 WHERE tenant_id = %s AND id = ANY(%s)
+                  AND (transfer_source IS NULL OR transfer_source = 'rule')
                 """,
                 (row[0], tenant_id, [pair.out_leg.txn_id, pair.in_leg.txn_id]),
             )
