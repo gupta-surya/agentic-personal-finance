@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import type { ChartSpec } from "../api/types";
 import { getRenderer } from "../renderers/registry";
+import { ClarifyCard, type Choose } from "./ClarifyCard";
 import { DataTable } from "./DataTable";
 
 export type ChartState =
@@ -13,7 +14,7 @@ const card = "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4";
 /** Title, chart, assumptions, provenance and a table view around any ChartSpec.
  *  The table is always in the DOM (visually hidden until toggled) so screen readers
  *  get the data whether or not the chart can be read. */
-export function ChartFrame({ state }: { state: ChartState }) {
+export function ChartFrame({ state, onChoose }: { state: ChartState; onChoose?: Choose }) {
   const tableId = useId();
   const [showTable, setShowTable] = useState(false);
 
@@ -39,13 +40,14 @@ export function ChartFrame({ state }: { state: ChartState }) {
   }
 
   const { spec } = state;
+  if (spec.clarify) return <ClarifyCard spec={spec} onChoose={onChoose} />;
   const resultIds = spec.sources.map((source) => source.result_id).join(", ");
 
   if (spec.table.rows.length === 0) {
     return (
       <section className={card}>
         <h2 className="text-base font-semibold">{spec.title}</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{spec.period.label}</p>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{spec.period?.label}</p>
         <p className="mt-4 text-sm" role="status">
           No data for this period.
         </p>
@@ -59,7 +61,7 @@ export function ChartFrame({ state }: { state: ChartState }) {
     <figure className={`${card} m-0`}>
       <figcaption>
         <h2 className="text-base font-semibold">{spec.title}</h2>
-        <p className="text-sm text-[var(--text-muted)]">{spec.period.label}</p>
+        <p className="text-sm text-[var(--text-muted)]">{spec.period?.label}</p>
       </figcaption>
 
       <div className="mt-3" title={`Source results: ${resultIds}`} data-result-ids={resultIds}>
