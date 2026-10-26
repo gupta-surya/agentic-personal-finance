@@ -11,7 +11,9 @@ file=$(python3 -c 'import json, sys; print(json.load(sys.stdin).get("tool_input"
 case "$file" in
   *.py)
     ruff format "$file" >/dev/null 2>&1
-    ruff check --fix "$file" >/dev/null 2>&1
+    # F401 stays unfixed: auto-removing an import added before its first use deletes
+    # it mid-edit. gate.sh still fails the turn on unused imports.
+    ruff check --fix --unfixable F401 "$file" >/dev/null 2>&1
     ;;
 esac
 exit 0
