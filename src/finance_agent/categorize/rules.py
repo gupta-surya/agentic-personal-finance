@@ -55,13 +55,14 @@ def resolve_merchants(
     tenant_id: str,
     merchants: Iterable[str],
     rules: dict[str, Rule],
-    threshold: float = FUZZY_THRESHOLD,
+    threshold: float | None = None,
 ) -> dict[str, Rule | None]:
     """The rule each merchant key resolves to: exact first, else the single best fuzzy one.
 
     A fuzzy match needs similarity >= ``threshold``. If two different rules are equally
     best, the merchant gets no rule: ties are never broken arbitrarily.
     """
+    threshold = FUZZY_THRESHOLD if threshold is None else threshold  # read at call time
     wanted = {m for m in merchants if m}
     resolved: dict[str, Rule | None] = {m: rules[m] for m in wanted if m in rules}
     pending = sorted(wanted - set(resolved))
@@ -110,9 +111,12 @@ def decide(
 
 
 def categorize(
-    conn: Connection, tenant_id: str, threshold: float = FUZZY_THRESHOLD
+    conn: Connection, tenant_id: str, threshold: float | None = None
 ) -> CategorizeResult:
-    """Apply the tenant's rules to every posted, non-transfer transaction. Safe to re-run."""
+    """Apply the tenant's rules to every posted, non-transfer transaction. Safe to re-run.
+
+    ``threshold`` defaults to the module's ``FUZZY_THRESHOLD`` (read at call time).
+    """
     with conn.transaction():
         lock_categorization(conn, tenant_id)
         rows = conn.execute(
