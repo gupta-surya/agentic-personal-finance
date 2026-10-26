@@ -1,0 +1,205 @@
+{
+  "errlist": [],
+  "connections": [
+    {
+      "conn_id": "CON-BANK",
+      "name": "Demo Bank",
+      "org_id": "INST-DEMO",
+      "org_url": "https://demo-bank.example",
+      "sfin_url": "https://sfin.demo-bank.example"
+    },
+    {
+      "conn_id": "CON-WALLET",
+      "name": "Demo Wallet",
+      "org_id": "INST-WALLET",
+      "org_url": "https://demo-wallet.example",
+      "sfin_url": "https://sfin.demo-wallet.example"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "chk",
+      "name": "Demo Checking",
+      "conn_id": "CON-BANK",
+      "currency": "USD",
+      "balance": "2000.00",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "t01",
+          "posted": 1772366400,
+          "amount": "3200.00",
+          "description": "ACME PAYROLL",
+          "extra": {
+            "category": "income"
+          }
+        },
+        {
+          "id": "t02",
+          "posted": 1772539200,
+          "amount": "-1850.00",
+          "description": "OAKWOOD PROPERTY RENT",
+          "extra": {
+            "category": "rent"
+          }
+        },
+        {
+          "id": "t03",
+          "posted": 1772712000,
+          "amount": "-1000.00",
+          "description": "TRANSFER TO SAVINGS"
+        },
+        {
+          "id": "t04",
+          "posted": 1773144000,
+          "amount": "-500.00",
+          "description": "AUTOPAY CARD"
+        },
+        {
+          "id": "t06",
+          "posted": 1772452800,
+          "amount": "-200.00",
+          "description": "TRANSFER TO SAVINGS"
+        },
+        {
+          "id": "t07",
+          "posted": 1773576000,
+          "amount": "-50.00",
+          "description": "VENMO JOHN"
+        },
+        {
+          "id": "t08",
+          "posted": 1773835200,
+          "amount": "-75.00",
+          "description": "TRANSFER TO SAVINGS"
+        },
+        {
+          "id": "t09",
+          "posted": 1774094400,
+          "amount": "-300.00",
+          "description": "TRANSFER TO SAVINGS"
+        },
+        {
+          "id": "t10a",
+          "posted": 1772366400,
+          "amount": "-50.00",
+          "description": "TRANSFER TO SAVINGS"
+        },
+        {
+          "id": "t10b",
+          "posted": 1774785600,
+          "amount": "-50.00",
+          "description": "TRANSFER TO SAVINGS"
+        },
+        {
+          "id": "t11",
+          "posted": 1773489600,
+          "amount": "40.00",
+          "description": "DEPOSIT"
+        }
+      ]
+    },
+    {
+      "id": "sav",
+      "name": "Demo Savings",
+      "conn_id": "CON-BANK",
+      "currency": "USD",
+      "balance": "5000.00",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "s03",
+          "posted": 1772712000,
+          "amount": "1000.00",
+          "description": "TRANSFER FROM CHECKING"
+        },
+        {
+          "id": "s06",
+          "posted": 1774008000,
+          "amount": "200.00",
+          "description": "TRANSFER FROM CHECKING"
+        },
+        {
+          "id": "s08",
+          "posted": 1773835200,
+          "amount": "75.00",
+          "description": "TRANSFER FROM CHECKING"
+        },
+        {
+          "id": "s09",
+          "posted": 1774008000,
+          "amount": "300.00",
+          "description": "TRANSFER FROM CHECKING"
+        },
+        {
+          "id": "s10a",
+          "posted": 1772366400,
+          "amount": "50.00",
+          "description": "TRANSFER FROM CHECKING"
+        },
+        {
+          "id": "s10b",
+          "posted": 1774785600,
+          "amount": "50.00",
+          "description": "TRANSFER FROM CHECKING"
+        }
+      ]
+    },
+    {
+      "id": "cc",
+      "name": "Demo Card",
+      "conn_id": "CON-BANK",
+      "currency": "USD",
+      "balance": "-300.00",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "c04",
+          "posted": 1773230400,
+          "amount": "500.00",
+          "description": "PAYMENT THANK YOU"
+        },
+        {
+          "id": "c05a",
+          "posted": 1772539200,
+          "amount": "-84.17",
+          "description": "GREENLEAF GROCERS",
+          "extra": {
+            "category": "groceries"
+          }
+        },
+        {
+          "id": "c05b",
+          "posted": 1774180800,
+          "amount": "-47.88",
+          "description": "GREENLEAF GROCERS",
+          "extra": {
+            "category": "groceries"
+          }
+        },
+        {
+          "id": "c09",
+          "posted": 1774180800,
+          "amount": "300.00",
+          "description": "PAYMENT THANK YOU"
+        }
+      ]
+    },
+    {
+      "id": "wal",
+      "name": "Demo Wallet",
+      "conn_id": "CON-WALLET",
+      "currency": "USD",
+      "balance": "60.00",
+      "balance-date": 1774958400,
+      "transactions": [
+        {
+          "id": "w11",
+          "posted": 1773489600,
+          "amount": "-40.00",
+          "description": "CASH OUT"
+        }
+      ]
+    }
+  ]
+}

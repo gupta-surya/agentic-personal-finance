@@ -28,15 +28,20 @@ DEFAULT_CATEGORIES: tuple[tuple[str, str], ...] = (
 )
 
 
+# Categories that count as income. Income is a flag on the row, set at seed time and
+# editable by the user afterwards; nothing infers it from a name later.
+INCOME_CATEGORIES = frozenset({"income"})
+
+
 def seed_default_categories(conn: Connection, tenant_id: str) -> None:
     """Insert the default taxonomy for a tenant. Idempotent; never touches existing rows."""
     with conn.transaction():
         for group_name, name in DEFAULT_CATEGORIES:
             conn.execute(
                 """
-                INSERT INTO categories (tenant_id, group_name, name)
-                VALUES (%s, %s, %s)
+                INSERT INTO categories (tenant_id, group_name, name, is_income)
+                VALUES (%s, %s, %s, %s)
                 ON CONFLICT (tenant_id, name) DO NOTHING
                 """,
-                (tenant_id, group_name, name),
+                (tenant_id, group_name, name, name in INCOME_CATEGORIES),
             )

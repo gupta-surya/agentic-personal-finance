@@ -71,6 +71,13 @@ CREATE TABLE accounts (
     available_balance NUMERIC,
     balance_as_of     TIMESTAMPTZ,
     stale             BOOLEAN     NOT NULL,
+    -- role decides whether the account counts toward cash flow (on_budget and credit
+    -- do; loan and investment don't). Never guessed from a balance sign or a name:
+    -- a connector may hint it, otherwise on_budget, and the user changes it.
+    role              TEXT        NOT NULL
+        CHECK (role IN ('on_budget', 'credit', 'loan', 'investment')),
+    role_source       TEXT        NOT NULL CHECK (role_source IN ('rule', 'user')),
+    closed            BOOLEAN     NOT NULL,
     PRIMARY KEY (tenant_id, id),
     UNIQUE (tenant_id, connection_id, external_id),
     FOREIGN KEY (tenant_id, connection_id) REFERENCES connections (tenant_id, id)
@@ -100,6 +107,9 @@ CREATE TABLE transfer_groups (
     window_days INTEGER,
     evidence    JSONB       NOT NULL DEFAULT '{}',
     source      TEXT        NOT NULL CHECK (source IN ('rule', 'user')),
+    -- low = matched on amount, window and accounts alone, with no transfer word in
+    -- either description. Still treated as a transfer, but listed for confirmation.
+    match_confidence TEXT   NOT NULL CHECK (match_confidence IN ('high', 'low')),
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (tenant_id, id)
 );
@@ -110,6 +120,7 @@ CREATE TABLE categories (
     id         BIGSERIAL,
     group_name TEXT        NOT NULL,
     name       TEXT        NOT NULL,
+    is_income  BOOLEAN     NOT NULL DEFAULT false,  -- income is a flag, never inferred from a name
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (tenant_id, id),
     UNIQUE (tenant_id, name)
@@ -144,6 +155,9 @@ CREATE TABLE transactions (
     transfer_group_id     BIGINT,
     is_internal_transfer  BOOLEAN NOT NULL DEFAULT false,
     category_source       TEXT CHECK (category_source IN ('rule', 'model', 'user')),
+    -- who decided the transfer state: rule (engine), user (linked or "not a transfer"),
+    -- NULL = never decided. The engine only touches NULL and rule rows.
+    transfer_source       TEXT CHECK (transfer_source IN ('rule', 'user')),
     -- first_seen_at: the pull that first inserted the row. last_changed_at: the
     -- last pull that inserted or changed it (an unchanged re-pull writes nothing).
     -- missing_since: set only on PENDING rows that a complete pull no longer returns.

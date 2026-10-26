@@ -61,6 +61,9 @@ class NormalizedAccount(_Frozen):
     balance: Money
     available_balance: Money | None = None
     balance_as_of: datetime | None = None
+    # What the account is, if the source says. Plaid does; SimpleFIN has no account-type
+    # field, so it leaves this empty. Never inferred from the balance sign or the name.
+    role_hint: Literal["on_budget", "credit", "loan", "investment"] | None = None
 
 
 class NormalizedTransaction(_Frozen):
