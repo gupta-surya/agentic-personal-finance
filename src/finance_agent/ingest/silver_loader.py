@@ -116,9 +116,10 @@ def _upsert_accounts(
                 f"""
                 INSERT INTO accounts (
                     tenant_id, connection_id, external_id, name, currency, currency_kind,
-                    balance, available_balance, balance_as_of, stale
+                    balance, available_balance, balance_as_of, stale,
+                    role, role_source, closed
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'rule', false)
                 ON CONFLICT (tenant_id, connection_id, external_id) DO UPDATE SET
                     name = EXCLUDED.name,
                     currency = EXCLUDED.currency,
@@ -150,6 +151,8 @@ def _upsert_accounts(
                         a.available_balance,
                         a.balance_as_of,
                         any(_covers(e, a) for e in batch.errors),
+                        # First insert only: a re-pull never overwrites a role the user set.
+                        a.role_hint or "on_budget",
                     )
                     for a in batch.accounts
                 ],

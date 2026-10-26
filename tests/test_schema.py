@@ -208,7 +208,8 @@ def test_fixture_shim_category_is_recorded_as_rule(conn: Connection) -> None:
 def test_transfer_group_links_transactions(conn: Connection) -> None:
     _load(conn)
     group = conn.execute(
-        "INSERT INTO transfer_groups (tenant_id, rule, source) VALUES (%s, 'test', 'rule') "
+        "INSERT INTO transfer_groups (tenant_id, rule, source, match_confidence) "
+        "VALUES (%s, 'test', 'rule', 'high') "
         "RETURNING id",
         (TENANT,),
     ).fetchone()
@@ -330,7 +331,8 @@ def test_numeric_amount_and_raw_keep_exact_number_text(conn: Connection) -> None
 def test_reload_leaves_transfer_columns_untouched(conn: Connection) -> None:
     _load(conn)
     group = conn.execute(
-        "INSERT INTO transfer_groups (tenant_id, rule, source) VALUES (%s, 't', 'user') "
+        "INSERT INTO transfer_groups (tenant_id, rule, source, match_confidence) "
+        "VALUES (%s, 't', 'user', 'high') "
         "RETURNING id",
         (TENANT,),
     ).fetchone()
@@ -383,7 +385,8 @@ def test_other_source_checks_reject_unknown_values(conn: Connection) -> None:
         conn.execute("UPDATE transactions SET category_source = 'guess'")
     with pytest.raises(CheckViolation):
         conn.execute(
-            "INSERT INTO transfer_groups (tenant_id, rule, source) VALUES (%s, 'r', 'model')",
+            "INSERT INTO transfer_groups (tenant_id, rule, source, match_confidence) "
+            "VALUES (%s, 'r', 'model', 'high')",
             (TENANT,),
         )
 
