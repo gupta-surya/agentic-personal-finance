@@ -15,13 +15,17 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from typing import Any
 
 from finance_agent.queries.result import (
     AMOUNTS_IN_DECIMAL,
     CashFlowRow,
     MonthlyCategorySpendRow,
     QueryResult,
+    ScalarRow,
+    SpendBreakdownRow,
 )
+from finance_agent.queries.series import BreakdownGroupBy, KpiMeasure
 
 INCOME_CATEGORIES = frozenset({"income"})
 DEFAULT_AS_OF = datetime(2026, 10, 25, 12, 0, tzinfo=UTC)
@@ -105,18 +109,34 @@ class FakeSeriesCatalog:
             and not t.internal_transfer
         ]
 
-    def monthly_spend_by_category(
-        self, start: date, end: date, currency: str
-    ) -> QueryResult[MonthlyCategorySpendRow]:
-        spend: dict[tuple[date, str | None], Decimal] = defaultdict(Decimal)
+    def _range_spend(self, start: date, end: date, currency: str) -> dict[str | None, Decimal]:
+        """Net spend per category over the whole range (income categories excluded)."""
+        totals: dict[str | None, Decimal] = defaultdict(Decimal)
         for t in self._posted(start, end, currency):
             if t.category not in INCOME_CATEGORIES:
-                spend[_month(t.posted), t.category] -= t.amount
-        keys = sorted(spend, key=lambda k: (k[0], k[1] is None, k[1] or ""))
-        rows = [MonthlyCategorySpendRow(month=m, category=c, spend=spend[m, c]) for m, c in keys]
+                totals[t.category] -= t.amount
+        return totals
+
+    def monthly_spend_by_category(
+        self, start: date, end: date, currency: str, top_n: int | None = None
+    ) -> QueryResult[MonthlyCategorySpendRow]:
+        kept = (
+            None if top_n is None else _top_groups(self._range_spend(start, end, currency), top_n)
+        )
+        spend: dict[tuple[date, str | None, bool], Decimal] = defaultdict(Decimal)
+        for t in self._posted(start, end, currency):
+            if t.category in INCOME_CATEGORIES:
+                continue
+            folded = kept is not None and t.category not in kept
+            spend[_month(t.posted), None if folded else t.category, folded] -= t.amount
+        keys = sorted(spend, key=lambda k: (k[0], k[2], k[1] is None, k[1] or ""))
+        rows = [
+            MonthlyCategorySpendRow(month=m, category=c, spend=spend[m, c, other], is_other=other)
+            for m, c, other in keys
+        ]
         return QueryResult[MonthlyCategorySpendRow](
             query="monthly_spend_by_category",
-            params=self._params(start, end, currency),
+            params=self._params(start, end, currency, top_n=top_n),
             result_id=self._next_result_id(),
             data_version=self._data_version,
             as_of=self._as_of,
@@ -156,6 +176,92 @@ class FakeSeriesCatalog:
             totals=totals,
         )
 
+    def spend_breakdown(
+        self,
+        start: date,
+        end: date,
+        currency: str,
+        group_by: BreakdownGroupBy = "category",
+        top_n: int | None = None,
+    ) -> QueryResult[SpendBreakdownRow]:
+        by_group = self._range_spend(start, end, currency)
+        total = sum(by_group.values(), Decimal(0))
+        kept = set(by_group) if top_n is None else _top_groups(by_group, top_n)
+        amounts: list[tuple[str | None, Decimal, bool]] = [
+            (g, a, False) for g, a in by_group.items() if g in kept
+        ]
+        folded = sum((a for g, a in by_group.items() if g not in kept), Decimal(0))
+        amounts.sort(key=lambda r: (-r[1], r[0] is None, r[0] or ""))
+        if len(kept) < len(by_group):
+            amounts.append((None, folded, True))
+        rows = [
+            SpendBreakdownRow(group=g, amount=a, share=_share(a, total), is_other=other)
+            for g, a, other in amounts
+        ]
+        return QueryResult[SpendBreakdownRow](
+            query="spend_breakdown",
+            params=self._params(start, end, currency, group_by=group_by, top_n=top_n),
+            result_id=self._next_result_id(),
+            data_version=self._data_version,
+            as_of=self._as_of,
+            amounts_in=AMOUNTS_IN_DECIMAL,
+            rows=rows,
+            totals={"spend": total} if rows else {},
+        )
+
+    def kpi(
+        self,
+        measure: KpiMeasure,
+        start: date,
+        end: date,
+        currency: str,
+        category: str | None = None,
+    ) -> QueryResult[ScalarRow]:
+        if category is not None and measure != "spend":
+            raise ValueError("category applies only to the spend measure")
+        spend = self._range_spend(start, end, currency)
+        income = sum(
+            (
+                t.amount
+                for t in self._posted(start, end, currency)
+                if t.category in INCOME_CATEGORIES
+            ),
+            Decimal(0),
+        )
+        total_spend = (
+            spend.get(category, Decimal(0))
+            if category is not None
+            else sum(spend.values(), Decimal(0))
+        )
+        value = {"spend": total_spend, "income": income, "net": income - total_spend}[measure]
+        return QueryResult[ScalarRow](
+            query="kpi",
+            params=self._params(start, end, currency, measure=measure, category=category),
+            result_id=self._next_result_id(),
+            data_version=self._data_version,
+            as_of=self._as_of,
+            amounts_in=AMOUNTS_IN_DECIMAL,
+            value=value,
+        )
+
     @staticmethod
-    def _params(start: date, end: date, currency: str) -> dict[str, str]:
-        return {"start": start.isoformat(), "end": end.isoformat(), "currency": currency}
+    def _params(start: date, end: date, currency: str, **extra: str | int | None) -> dict[str, Any]:
+        params: dict[str, Any] = {
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "currency": currency,
+        }
+        params.update({k: v for k, v in extra.items() if v is not None})
+        return params
+
+
+def _top_groups(totals: dict[str | None, Decimal], top_n: int) -> set[str | None]:
+    """The N groups with the largest net spend; ties by name, uncategorized last."""
+    if top_n < 1:
+        raise ValueError("top_n must be at least 1")
+    ranked = sorted(totals, key=lambda g: (-totals[g], g is None, g or ""))
+    return set(ranked[:top_n])
+
+
+def _share(amount: Decimal, total: Decimal) -> Decimal:
+    return (amount / total).quantize(Decimal("0.0001")) if total else Decimal("0")

@@ -3,7 +3,13 @@ import json
 from pydantic import TypeAdapter
 
 from finance_agent.queries.contract_export import CONTRACTS_DIR, examples, render
-from finance_agent.queries.result import CashFlowRow, MonthlyCategorySpendRow, QueryResult
+from finance_agent.queries.result import (
+    CashFlowRow,
+    MonthlyCategorySpendRow,
+    QueryResult,
+    ScalarRow,
+    SpendBreakdownRow,
+)
 
 
 def test_committed_contract_files_match_the_python_types() -> None:
@@ -23,6 +29,20 @@ def test_examples_validate_against_the_models() -> None:
 
     assert spend.rows is not None and flow.rows is not None
     assert flow.rows[1].net == flow.rows[1].inflow - flow.rows[1].outflow
+
+
+def test_breakdown_and_kpi_examples_validate_and_money_is_a_string() -> None:
+    docs = examples()
+
+    breakdown = QueryResult[SpendBreakdownRow].model_validate(docs["spend_breakdown.example.json"])
+    kpi = QueryResult[ScalarRow].model_validate(docs["kpi.example.json"])
+
+    assert breakdown.rows is not None and kpi.rows is None
+    assert sum(r.share for r in breakdown.rows) == 1
+    assert sum(r.amount for r in breakdown.rows) == breakdown.totals["spend"]
+    assert kpi.value == 697.50
+    assert docs["kpi.example.json"]["value"] == "697.50"
+    assert docs["spend_breakdown.example.json"]["rows"][0]["share"] == "0.9721"
 
 
 def test_money_is_a_string_in_the_schema_and_the_examples() -> None:

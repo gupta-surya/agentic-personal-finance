@@ -1,6 +1,7 @@
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
+from typing import Literal
 
 import pytest
 from pydantic import ValidationError
@@ -10,6 +11,8 @@ from finance_agent.queries.result import (
     CashFlowRow,
     MonthlyCategorySpendRow,
     QueryResult,
+    ScalarRow,
+    SpendBreakdownRow,
 )
 from finance_agent.queries.series import SeriesCatalog
 
@@ -149,9 +152,29 @@ class _StubCatalog:
         self.tenant_id = tenant_id
 
     def monthly_spend_by_category(
-        self, start: date, end: date, currency: str
+        self, start: date, end: date, currency: str, top_n: int | None = None
     ) -> QueryResult[MonthlyCategorySpendRow]:
         return _result(rows=[])
+
+    def spend_breakdown(
+        self,
+        start: date,
+        end: date,
+        currency: str,
+        group_by: Literal["category"] = "category",
+        top_n: int | None = None,
+    ) -> QueryResult[SpendBreakdownRow]:
+        raise NotImplementedError
+
+    def kpi(
+        self,
+        measure: Literal["spend", "income", "net"],
+        start: date,
+        end: date,
+        currency: str,
+        category: str | None = None,
+    ) -> QueryResult[ScalarRow]:
+        raise NotImplementedError
 
     def cash_flow(self, start: date, end: date, currency: str) -> QueryResult[CashFlowRow]:
         return QueryResult[CashFlowRow](

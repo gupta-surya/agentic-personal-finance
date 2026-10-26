@@ -31,6 +31,10 @@ def _reject_float(value: object) -> object:
 
 Money = Annotated[Decimal, BeforeValidator(_reject_float)]
 
+# A dimensionless fraction (``0.1234`` is 12.34%), not an amount of money. It is exact
+# like Money and serializes as a string, but never carries a currency.
+Share = Annotated[Decimal, BeforeValidator(_reject_float)]
+
 # What every money-valued query says about its own signs, so a reader (or a model)
 # can't misread them. Implementations put this in ``QueryResult.amounts_in``.
 AMOUNTS_IN_DECIMAL = (
@@ -90,10 +94,47 @@ class MonthlyCategorySpendRow(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     month: date  # first day of the month
-    category: str | None  # None = uncategorized
+    category: str | None  # None = uncategorized, or the folded bucket when is_other
     spend: Money
+    # True only on the bucket that folds categories outside ``top_n``. A real category
+    # can be named "other", so the fold is flagged rather than given a magic name.
+    is_other: bool = False
 
     _month_is_first = field_validator("month")(_first_of_month)
+
+    @model_validator(mode="after")
+    def _folded_bucket_has_no_category(self) -> Self:
+        if self.is_other and self.category is not None:
+            raise ValueError("the folded 'other' bucket has no category")
+        return self
+
+
+class SpendBreakdownRow(BaseModel):
+    """Net spend for one group over a whole range, with its share of the total.
+
+    ``share`` is ``amount / totals["spend"]`` as a Decimal fraction rounded to four
+    places (``0.1234`` is 12.34%), or ``0`` when the total is zero. Refunds can make
+    an amount negative or a share exceed ``1``; callers show them as they are.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    group: str | None  # None = uncategorized, or the folded bucket when is_other
+    amount: Money
+    share: Share
+    is_other: bool = False  # the bucket that folds groups outside ``top_n``
+
+    @model_validator(mode="after")
+    def _folded_bucket_has_no_group(self) -> Self:
+        if self.is_other and self.group is not None:
+            raise ValueError("the folded 'other' bucket has no group")
+        return self
+
+
+class ScalarRow(BaseModel):
+    """Type parameter for scalar queries: they set ``value`` and never carry rows."""
+
+    model_config = ConfigDict(frozen=True)
 
 
 class CashFlowRow(BaseModel):

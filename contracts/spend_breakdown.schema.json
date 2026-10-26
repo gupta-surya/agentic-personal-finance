@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "SpendBreakdownRow": {
+      "description": "Net spend for one group over a whole range, with its share of the total.\n\n``share`` is ``amount / totals[\"spend\"]`` as a Decimal fraction rounded to four\nplaces (``0.1234`` is 12.34%), or ``0`` when the total is zero. Refunds can make\nan amount negative or a share exceed ``1``; callers show them as they are.",
+      "properties": {
+        "amount": {
+          "title": "Amount",
+          "type": "string"
+        },
+        "group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Group"
+        },
+        "is_other": {
+          "default": false,
+          "title": "Is Other",
+          "type": "boolean"
+        },
+        "share": {
+          "title": "Share",
+          "type": "string"
+        }
+      },
+      "required": [
+        "group",
+        "amount",
+        "share"
+      ],
+      "title": "SpendBreakdownRow",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "amounts_in": {
+      "title": "Amounts In",
+      "type": "string"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "data_version": {
+      "title": "Data Version",
+      "type": "string"
+    },
+    "params": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Params",
+      "type": "object"
+    },
+    "query": {
+      "title": "Query",
+      "type": "string"
+    },
+    "result_id": {
+      "title": "Result Id",
+      "type": "string"
+    },
+    "rows": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/SpendBreakdownRow"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rows"
+    },
+    "totals": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Totals",
+      "type": "object"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value"
+    }
+  },
+  "required": [
+    "query",
+    "params",
+    "result_id",
+    "data_version",
+    "as_of",
+    "amounts_in"
+  ],
+  "title": "QueryResult[SpendBreakdownRow]",
+  "type": "object"
+}
