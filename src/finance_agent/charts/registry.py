@@ -20,6 +20,10 @@ class UnknownTemplateError(KeyError):
     """No template is registered under this id."""
 
 
+class TemplateParamsError(ValueError):
+    """The request's params contradict the template they were sent to."""
+
+
 class Template(Generic[P]):  # noqa: UP046 - TypeVar keeps mypy strict happy with the registry
     def __init__(
         self,
@@ -36,7 +40,7 @@ class Template(Generic[P]):  # noqa: UP046 - TypeVar keeps mypy strict happy wit
 
     def render(self, raw_params: dict[str, Any], catalog: SeriesCatalog, today: date) -> ChartSpec:
         if raw_params.get("template", self.template_id) != self.template_id:
-            raise ValueError(f"params.template must be {self.template_id!r}")
+            raise TemplateParamsError(f"params.template must be {self.template_id!r}")
         params = self.params_model.model_validate({**raw_params, "template": self.template_id})
         spec = self._build(params, catalog, today)
         if spec.template_id != self.template_id:
