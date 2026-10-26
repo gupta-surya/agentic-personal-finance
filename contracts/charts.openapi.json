@@ -113,6 +113,16 @@
             "title": "Assumptions",
             "type": "array"
           },
+          "clarify": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Clarify"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "params": {
             "additionalProperties": {
               "$ref": "#/components/schemas/JsonValue"
@@ -121,7 +131,14 @@
             "type": "object"
           },
           "period": {
-            "$ref": "#/components/schemas/ResolvedPeriod"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResolvedPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "series": {
             "items": {
@@ -159,6 +176,55 @@
           "table"
         ],
         "title": "ChartSpec",
+        "type": "object"
+      },
+      "Clarify": {
+        "description": "A question with 2 to 4 options, for when the planner cannot choose confidently.",
+        "properties": {
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ClarifyOption"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "options"
+        ],
+        "title": "Clarify",
+        "type": "object"
+      },
+      "ClarifyOption": {
+        "description": "A ready request: choosing it sends ``{template_id, params}`` to the render route.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Params",
+            "type": "object"
+          },
+          "template_id": {
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "template_id",
+          "params"
+        ],
+        "title": "ClarifyOption",
         "type": "object"
       },
       "HTTPValidationError": {

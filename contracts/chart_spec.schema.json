@@ -97,6 +97,55 @@
       "title": "Assumption",
       "type": "object"
     },
+    "Clarify": {
+      "description": "A question with 2 to 4 options, for when the planner cannot choose confidently.",
+      "properties": {
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ClarifyOption"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "options"
+      ],
+      "title": "Clarify",
+      "type": "object"
+    },
+    "ClarifyOption": {
+      "description": "A ready request: choosing it sends ``{template_id, params}`` to the render route.",
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Params",
+          "type": "object"
+        },
+        "template_id": {
+          "title": "Template Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "template_id",
+        "params"
+      ],
+      "title": "ClarifyOption",
+      "type": "object"
+    },
     "JsonValue": {},
     "PeriodPreset": {
       "enum": [
@@ -348,6 +397,17 @@
       "title": "Assumptions",
       "type": "array"
     },
+    "clarify": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Clarify"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "params": {
       "additionalProperties": {
         "$ref": "#/$defs/JsonValue"
@@ -356,7 +416,14 @@
       "type": "object"
     },
     "period": {
-      "$ref": "#/$defs/ResolvedPeriod"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResolvedPeriod"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "series": {
       "items": {

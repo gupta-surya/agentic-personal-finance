@@ -116,16 +116,38 @@ class Table(_Frozen):
         return self
 
 
+class ClarifyOption(_Frozen):
+    """A ready request: choosing it sends ``{template_id, params}`` to the render route."""
+
+    label: str
+    template_id: str
+    params: dict[str, JsonValue]
+
+
+class Clarify(_Frozen):
+    """A question with 2 to 4 options, for when the planner cannot choose confidently."""
+
+    question: str
+    options: list[ClarifyOption]
+
+    @model_validator(mode="after")
+    def _two_to_four_options(self) -> Self:
+        if not 2 <= len(self.options) <= 4:
+            raise ValueError("a clarify question needs 2 to 4 options")
+        return self
+
+
 class ChartSpec(_Frozen):
     template_id: str
     title: str
     params: dict[str, JsonValue]  # the resolved params the chart was built from
-    period: ResolvedPeriod
+    period: ResolvedPeriod | None  # None for a clarify question, which covers no data
     series: list[Series]
     annotations: list[Annotation] = []
     assumptions: list[Assumption] = []
     sources: list[Source]
     table: Table
+    clarify: Clarify | None = None  # set only by the clarify template
 
     @model_validator(mode="after")
     def _every_result_id_is_a_source(self) -> Self:
