@@ -26,6 +26,7 @@ from finance_agent.queries.result import (
     SpendBreakdownRow,
 )
 from finance_agent.queries.series import BreakdownGroupBy, KpiMeasure
+from finance_agent.queries.series_rules import catalog_params, share, top_groups
 
 INCOME_CATEGORIES = frozenset({"income"})
 DEFAULT_AS_OF = datetime(2026, 10, 25, 12, 0, tzinfo=UTC)
@@ -120,9 +121,7 @@ class FakeSeriesCatalog:
     def monthly_spend_by_category(
         self, start: date, end: date, currency: str, top_n: int | None = None
     ) -> QueryResult[MonthlyCategorySpendRow]:
-        kept = (
-            None if top_n is None else _top_groups(self._range_spend(start, end, currency), top_n)
-        )
+        kept = None if top_n is None else top_groups(self._range_spend(start, end, currency), top_n)
         spend: dict[tuple[date, str | None, bool], Decimal] = defaultdict(Decimal)
         for t in self._posted(start, end, currency):
             if t.category in INCOME_CATEGORIES:
@@ -186,7 +185,7 @@ class FakeSeriesCatalog:
     ) -> QueryResult[SpendBreakdownRow]:
         by_group = self._range_spend(start, end, currency)
         total = sum(by_group.values(), Decimal(0))
-        kept = set(by_group) if top_n is None else _top_groups(by_group, top_n)
+        kept = set(by_group) if top_n is None else top_groups(by_group, top_n)
         amounts: list[tuple[str | None, Decimal, bool]] = [
             (g, a, False) for g, a in by_group.items() if g in kept
         ]
@@ -195,7 +194,7 @@ class FakeSeriesCatalog:
         if len(kept) < len(by_group):
             amounts.append((None, folded, True))
         rows = [
-            SpendBreakdownRow(group=g, amount=a, share=_share(a, total), is_other=other)
+            SpendBreakdownRow(group=g, amount=a, share=share(a, total), is_other=other)
             for g, a, other in amounts
         ]
         return QueryResult[SpendBreakdownRow](
@@ -246,22 +245,4 @@ class FakeSeriesCatalog:
 
     @staticmethod
     def _params(start: date, end: date, currency: str, **extra: str | int | None) -> dict[str, Any]:
-        params: dict[str, Any] = {
-            "start": start.isoformat(),
-            "end": end.isoformat(),
-            "currency": currency,
-        }
-        params.update({k: v for k, v in extra.items() if v is not None})
-        return params
-
-
-def _top_groups(totals: dict[str | None, Decimal], top_n: int) -> set[str | None]:
-    """The N groups with the largest net spend; ties by name, uncategorized last."""
-    if top_n < 1:
-        raise ValueError("top_n must be at least 1")
-    ranked = sorted(totals, key=lambda g: (-totals[g], g is None, g or ""))
-    return set(ranked[:top_n])
-
-
-def _share(amount: Decimal, total: Decimal) -> Decimal:
-    return (amount / total).quantize(Decimal("0.0001")) if total else Decimal("0")
+        return catalog_params(start, end, currency, **extra)
