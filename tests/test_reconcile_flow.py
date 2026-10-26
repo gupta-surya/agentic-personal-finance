@@ -10,6 +10,7 @@ import pytest
 from finance_agent.db.loader import Connection
 from finance_agent.ingest.pipeline import ingest
 from finance_agent.queries.cash_flow import net_cash_flow
+from finance_agent.queries.result import QueryResult, ScalarRow
 from finance_agent.reconcile.actions import mark_not_transfer, set_account_role
 from finance_agent.reconcile.classify import Kind, classify
 from finance_agent.reconcile.match import reconcile
@@ -273,3 +274,12 @@ def test_the_sql_agrees_with_the_classifier(conn: Connection) -> None:
     assert (str(inflow), str(outflow)) == _flow(conn)[:2]
     income_rows = [r for r in rows if r[3]]
     assert [r[2] for r in income_rows] == ["income"]  # the flag, not the name, picks income
+
+
+def test_net_cash_flow_is_a_scalar_result_not_a_monthly_series(conn: Connection) -> None:
+    _reconciled(conn)
+
+    result = net_cash_flow(conn, TENANT, *MARCH, "USD")
+
+    assert type(result) is QueryResult[ScalarRow]
+    assert result.rows is None and result.value == Decimal("1467.95")
