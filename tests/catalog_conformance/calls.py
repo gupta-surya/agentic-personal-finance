@@ -19,6 +19,10 @@ REVERSED = (date(2026, 4, 1), date(2026, 3, 1))
 EDGE_LOW = (date(2026, 3, 22), date(2026, 3, 23))  # a row on start is included
 EDGE_HIGH = (date(2026, 3, 1), date(2026, 3, 22))  # a row on end is excluded
 TIE_DAY = (date(2026, 6, 25), date(2026, 6, 26))  # three groups tie at 40.00
+ZERO_ROW = (date(2027, 1, 1), date(2027, 2, 1))  # a month with only a zero-amount row
+UNCAT = (date(2027, 2, 1), date(2027, 3, 1))  # uncategorized outranks a named category
+HALF = (date(2027, 3, 1), date(2027, 4, 1))  # shares on a rounding half boundary
+MONTH_END = (date(2027, 4, 1), date(2027, 6, 1))  # April 30 and May 1 land in different months
 
 RANGES = {
     "full": FULL,
@@ -33,6 +37,10 @@ RANGES = {
     "edge_low": EDGE_LOW,
     "edge_high": EDGE_HIGH,
     "tie_day": TIE_DAY,
+    "zero_row": ZERO_ROW,
+    "uncat": UNCAT,
+    "half": HALF,
+    "month_end": MONTH_END,
 }
 
 

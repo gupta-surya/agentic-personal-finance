@@ -42,9 +42,40 @@ def _tie_rows() -> list[SyntheticTransaction]:
     ]
 
 
+ZERO_DAY = date(2027, 1, 15)  # a zero-amount posted row alone in its month
+UNCAT_DAYS = (date(2027, 2, 9), date(2027, 2, 10))  # uncategorized outranks a named category
+HALF_DAY = date(2027, 3, 10)  # shares land on a half boundary: 1/20000 and 19999/20000
+MONTH_END = (date(2027, 4, 30), date(2027, 5, 1))  # the last day of a month and the next first
+
+
+def _edge_rows() -> list[SyntheticTransaction]:
+    """Rows in months of their own (after the main data), each probing one edge."""
+    return [
+        SyntheticTransaction(ZERO_DAY, Decimal("0.00"), None),
+        # the named category is earlier in the data, so it is the one folded by top_n=1
+        SyntheticTransaction(UNCAT_DAYS[0], Decimal("-30.00"), "groceries"),
+        SyntheticTransaction(UNCAT_DAYS[1], Decimal("-400.00"), None),
+        SyntheticTransaction(HALF_DAY, Decimal("-1.00"), "dining"),
+        SyntheticTransaction(HALF_DAY, Decimal("-19999.00"), "rent"),
+        SyntheticTransaction(MONTH_END[0], Decimal("-12.00"), "dining"),
+        SyntheticTransaction(MONTH_END[1], Decimal("-7.00"), "dining"),
+    ]
+
+
+def _earliest_traps() -> list[SyntheticTransaction]:
+    """A pending row and a transfer pair dated before every real row, so earliest_date()
+    only gives the right answer if it skips them."""
+    return [
+        SyntheticTransaction(date(2025, 1, 5), Decimal("-9.00"), "dining", pending=True),
+        SyntheticTransaction(date(2025, 2, 3), Decimal("-300.00"), None, internal_transfer=True),
+        SyntheticTransaction(date(2025, 2, 3), Decimal("300.00"), None, internal_transfer=True),
+    ]
+
+
 def dataset() -> list[Row]:
     rows = []
-    for txn in [*synthetic_transactions(), *_tie_rows()]:
+    extra = [*_tie_rows(), *_edge_rows(), *_earliest_traps()]
+    for txn in [*synthetic_transactions(), *extra]:
         if txn.currency != "USD":
             account = "euro"
         elif txn.internal_transfer and txn.amount > 0:
@@ -108,5 +139,6 @@ def to_postgres(conn: Connection, tenant_id: str, rows: list[Row]) -> PostgresSe
     result = ingest(conn, tenant_id, pull_from_text(simplefin_body(rows)), UTC_TZ)
     assert result.status == "ok", result.message
     reconciled = reconcile(conn, tenant_id)
-    assert reconciled.matched == 1, "the dataset has exactly one transfer pair"
+    pairs = sum(1 for r in rows if r.txn.internal_transfer and r.txn.amount > 0)
+    assert reconciled.matched == pairs == 2, "the dataset has exactly two transfer pairs"
     return PostgresSeriesCatalog(conn, tenant_id)

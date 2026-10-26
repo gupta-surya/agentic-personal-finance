@@ -11,11 +11,15 @@ from tests.catalog_conformance.calls import (
     CALLS,
     FEBRUARY,
     FULL,
+    HALF,
     MARCH,
+    MONTH_END,
     OCTOBER,
     PARTIAL,
     RAISED,
     TIE_DAY,
+    UNCAT,
+    ZERO_ROW,
     comparable,
     invoke,
 )
@@ -127,6 +131,65 @@ def test_top_n_with_tied_groups_keeps_the_first_by_name(
     assert folded[0].amount == Decimal("175.00") - sum(
         (r.amount for r in rows if not r.is_other), Decimal(0)
     )
+
+
+def test_a_zero_amount_row_makes_its_month_appear_with_zeros(catalog: SeriesCatalog) -> None:
+    flow = catalog.cash_flow(*ZERO_ROW, "USD")
+    breakdown = catalog.spend_breakdown(*ZERO_ROW, "USD")
+
+    assert flow.rows is not None and len(flow.rows) == 1
+    row = flow.rows[0]
+    assert (row.month, row.inflow, row.outflow, row.net) == (
+        date(2027, 1, 1),
+        Decimal("0"),
+        Decimal("0"),
+        Decimal("0"),
+    )
+    assert flow.totals == {"inflow": Decimal("0"), "outflow": Decimal("0"), "net": Decimal("0")}
+    # a zero total never divides: the share is 0
+    assert breakdown.rows is not None
+    assert [(r.group, r.amount, r.share) for r in breakdown.rows] == [
+        (None, Decimal("0"), Decimal("0"))
+    ]
+    assert breakdown.totals == {"spend": Decimal("0")}
+
+
+def test_a_kept_uncategorized_row_sorts_before_the_folded_row(catalog: SeriesCatalog) -> None:
+    folded = catalog.monthly_spend_by_category(*UNCAT, "USD", top_n=1)
+    everything = catalog.monthly_spend_by_category(*UNCAT, "USD")
+
+    assert folded.rows is not None and everything.rows is not None
+    assert [(r.category, r.spend, r.is_other) for r in folded.rows] == [
+        (None, Decimal("400.00"), False),
+        (None, Decimal("30.00"), True),  # groceries, folded into the flagged bucket
+    ]
+    assert [(r.category, r.spend) for r in everything.rows] == [
+        ("groceries", Decimal("30.00")),
+        (None, Decimal("400.00")),
+    ]
+
+
+def test_shares_on_a_half_boundary_round_to_the_even_digit(catalog: SeriesCatalog) -> None:
+    rows = catalog.spend_breakdown(*HALF, "USD").rows
+
+    # 19999/20000 = 0.99995 and 1/20000 = 0.00005: both exact ties
+    assert rows is not None
+    assert [(r.group, r.amount, r.share) for r in rows] == [
+        ("rent", Decimal("19999.00"), Decimal("1.0000")),
+        ("dining", Decimal("1.00"), Decimal("0.0000")),
+    ]
+
+
+def test_the_last_day_of_a_month_and_the_first_of_the_next_bucket_apart(
+    catalog: SeriesCatalog,
+) -> None:
+    rows = catalog.monthly_spend_by_category(*MONTH_END, "USD").rows
+
+    assert rows is not None
+    assert [(r.month, r.category, r.spend) for r in rows] == [
+        (date(2027, 4, 1), "dining", Decimal("12.00")),
+        (date(2027, 5, 1), "dining", Decimal("7.00")),
+    ]
 
 
 def test_the_pending_charge_and_the_other_currency_are_excluded(catalog: SeriesCatalog) -> None:

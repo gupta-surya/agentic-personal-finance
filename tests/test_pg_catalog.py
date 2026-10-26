@@ -13,7 +13,7 @@ from finance_agent.queries.series import SeriesCatalog
 from finance_agent.reconcile.actions import mark_not_transfer, set_account_role
 from finance_agent.reconcile.match import reconcile
 from tests.catalog_conformance.calls import CALLS, FEBRUARY, FULL, MARCH, invoke
-from tests.catalog_conformance.dataset import dataset, to_fake, to_postgres
+from tests.catalog_conformance.dataset import dataset, simplefin_body, to_fake, to_postgres
 from tests.helpers import FETCHED_AT, UTC_TZ, pull_from_text
 
 TENANT = "demo-tenant"
@@ -258,5 +258,35 @@ def test_earliest_date_is_none_for_a_tenant_with_no_rows(conn: Connection) -> No
 def test_reconcile_can_run_after_the_catalog_was_built(conn: Connection) -> None:
     catalog = to_postgres(conn, TENANT, dataset())
 
-    assert reconcile(conn, TENANT).unchanged == 1
+    assert reconcile(conn, TENANT).unchanged == 2  # the dataset's two transfer pairs
     assert catalog.cash_flow(*FEBRUARY, "USD").rows is not None
+
+
+def test_earliest_date_ignores_accounts_that_do_not_count_toward_cash_flow(
+    conn: Connection,
+) -> None:
+    _load(
+        conn,
+        ("checking", "USD", [("late", "-10.00", "dining")]),
+        ("brokerage", "USD", [("early", "-10.00", "dining")]),
+    )
+    conn.execute("UPDATE transactions SET posted_date = '2026-01-02' WHERE external_id = 'early'")
+    catalog = PostgresSeriesCatalog(conn, TENANT)
+    assert catalog.earliest_date() == date(2026, 1, 2)
+
+    set_account_role(conn, TENANT, _account_id(conn, "brokerage"), "investment")
+
+    assert catalog.earliest_date() == date(2026, 3, 10)
+
+
+def test_data_version_changes_when_a_reconcile_changes_something(conn: Connection) -> None:
+    ingest(conn, TENANT, pull_from_text(simplefin_body(dataset())), UTC_TZ)
+    catalog = PostgresSeriesCatalog(conn, TENANT)
+    before = catalog.cash_flow(*MARCH, "USD").data_version
+
+    assert reconcile(conn, TENANT).matched == 2
+    after = catalog.cash_flow(*MARCH, "USD").data_version
+    assert reconcile(conn, TENANT).matched == 0  # nothing new this time
+
+    assert after != before
+    assert catalog.cash_flow(*MARCH, "USD").data_version == after

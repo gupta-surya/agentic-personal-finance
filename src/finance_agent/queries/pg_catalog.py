@@ -51,7 +51,7 @@ _ROWS = """
 _SPEND_BY_MONTH_AND_CATEGORY = (
     "SELECT date_trunc('month', t.posted_date)::date, t.category, -SUM(t.amount) "
     + _ROWS
-    + " AND NOT COALESCE(c.is_income, false) GROUP BY 1, 2"
+    + " AND NOT COALESCE(c.is_income, false) GROUP BY 1, 2 ORDER BY 1, 2 NULLS LAST"
 )
 _INCOME_TOTAL = "SELECT COALESCE(SUM(t.amount), 0) " + _ROWS + " AND COALESCE(c.is_income, false)"
 _FLOW_BY_MONTH = (
