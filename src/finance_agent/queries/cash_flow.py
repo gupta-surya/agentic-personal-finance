@@ -1,5 +1,9 @@
 """``net_cash_flow``: what came in, what went out, and the difference, for a date range.
 
+A scalar query: it sets ``value`` (the net) and ``totals`` and carries no rows, so its
+type is ``QueryResult[ScalarRow]``. ``CashFlowRow`` is the *monthly* row type for
+``SeriesCatalog.cash_flow``.
+
 The minimal flow query. It counts only posted rows that are not internal transfers, in
 accounts whose role counts toward cash flow (``on_budget`` and ``credit``; not ``loan``
 or ``investment``), in one currency. Closed accounts still count: ``closed`` only
@@ -14,7 +18,7 @@ from decimal import Decimal
 
 from finance_agent.db.loader import Connection
 from finance_agent.queries.meta import data_stamp
-from finance_agent.queries.result import CashFlowRow, QueryResult
+from finance_agent.queries.result import QueryResult, ScalarRow
 
 AMOUNTS_IN = (
     "Decimal amounts as strings, in the currency named in params. inflow and outflow are "
@@ -25,7 +29,7 @@ AMOUNTS_IN = (
 
 def net_cash_flow(
     conn: Connection, tenant_id: str, start: date, end: date, currency: str
-) -> QueryResult[CashFlowRow]:
+) -> QueryResult[ScalarRow]:
     """Net cash flow for ``start`` (inclusive) to ``end`` (exclusive) in ``currency``."""
     row = conn.execute(
         """
@@ -47,7 +51,7 @@ def net_cash_flow(
     assert row is not None
     inflow, outflow = Decimal(row[0]), Decimal(row[1])
     data_version, as_of = data_stamp(conn, tenant_id)
-    return QueryResult[CashFlowRow](
+    return QueryResult[ScalarRow](
         query="net_cash_flow",
         params={"start": start.isoformat(), "end": end.isoformat(), "currency": currency},
         result_id=uuid.uuid4().hex,
