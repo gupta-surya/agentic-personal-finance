@@ -1,12 +1,19 @@
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from finance_agent.queries.result import CashFlowRow, MonthlyCategorySpendRow, QueryResult
+from finance_agent.queries.result import (
+    AMOUNTS_IN_DECIMAL,
+    CashFlowRow,
+    MonthlyCategorySpendRow,
+    QueryResult,
+)
 from finance_agent.queries.series import SeriesCatalog
+
+AS_OF = datetime(2026, 4, 2, 12, 0, tzinfo=UTC)
 
 
 def _result(**overrides: object) -> QueryResult[MonthlyCategorySpendRow]:
@@ -15,6 +22,8 @@ def _result(**overrides: object) -> QueryResult[MonthlyCategorySpendRow]:
         "params": {"start": "2026-03-01", "end": "2026-05-01", "currency": "USD"},
         "result_id": "r-1",
         "data_version": "v1",
+        "as_of": AS_OF,
+        "amounts_in": AMOUNTS_IN_DECIMAL,
         "rows": [
             MonthlyCategorySpendRow(
                 month=date(2026, 3, 1), category="groceries", spend=Decimal("285.32")
@@ -43,6 +52,8 @@ def test_scalar_value_result() -> None:
         params={"category": "groceries"},
         result_id="r-2",
         data_version="v1",
+        as_of=AS_OF,
+        amounts_in=AMOUNTS_IN_DECIMAL,
         value=Decimal("285.32"),
     )
 
@@ -57,6 +68,8 @@ def test_empty_rows_is_valid_and_distinct_from_zero_value() -> None:
         params={},
         result_id="r-3",
         data_version="v1",
+        as_of=AS_OF,
+        amounts_in=AMOUNTS_IN_DECIMAL,
         value=Decimal("0"),
     )
 
@@ -142,7 +155,13 @@ class _StubCatalog:
 
     def cash_flow(self, start: date, end: date, currency: str) -> QueryResult[CashFlowRow]:
         return QueryResult[CashFlowRow](
-            query="cash_flow", params={}, result_id="r-4", data_version="v1", rows=[]
+            query="cash_flow",
+            params={},
+            result_id="r-4",
+            data_version="v1",
+            as_of=AS_OF,
+            amounts_in=AMOUNTS_IN_DECIMAL,
+            rows=[],
         )
 
 
@@ -170,3 +189,25 @@ def test_series_contract_does_not_import_the_database_layer() -> None:
             for alias in node.names
         ]
         assert not [name for name in imported if name.startswith("finance_agent.db")]
+
+
+def test_as_of_must_be_timezone_aware() -> None:
+    with pytest.raises(ValidationError, match="timezone-aware"):
+        _result(as_of=datetime(2026, 4, 2, 12, 0))
+
+
+def test_totals_are_exact_decimals_and_default_to_empty() -> None:
+    assert _result().totals == {}
+
+    result = _result(totals={"spend": Decimal("285.32")})
+
+    assert result.model_dump_json().count('"totals":{"spend":"285.32"}') == 1
+    with pytest.raises(ValidationError, match="never a float"):
+        _result(totals={"spend": 285.32})
+
+
+def test_envelope_states_its_units_and_data_age() -> None:
+    result = _result()
+
+    assert result.amounts_in == AMOUNTS_IN_DECIMAL
+    assert '"as_of":"2026-04-02T12:00:00Z"' in result.model_dump_json()

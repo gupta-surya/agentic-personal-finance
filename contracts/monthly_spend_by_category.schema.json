@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "MonthlyCategorySpendRow": {
+      "description": "Net spend for one category in one calendar month.\n\nSpend is positive money out (``-SUM(amount)``), so refunds reduce it.",
+      "properties": {
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "month": {
+          "format": "date",
+          "title": "Month",
+          "type": "string"
+        },
+        "spend": {
+          "title": "Spend",
+          "type": "string"
+        }
+      },
+      "required": [
+        "month",
+        "category",
+        "spend"
+      ],
+      "title": "MonthlyCategorySpendRow",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "amounts_in": {
+      "title": "Amounts In",
+      "type": "string"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "data_version": {
+      "title": "Data Version",
+      "type": "string"
+    },
+    "params": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Params",
+      "type": "object"
+    },
+    "query": {
+      "title": "Query",
+      "type": "string"
+    },
+    "result_id": {
+      "title": "Result Id",
+      "type": "string"
+    },
+    "rows": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/MonthlyCategorySpendRow"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rows"
+    },
+    "totals": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Totals",
+      "type": "object"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value"
+    }
+  },
+  "required": [
+    "query",
+    "params",
+    "result_id",
+    "data_version",
+    "as_of",
+    "amounts_in"
+  ],
+  "title": "QueryResult[MonthlyCategorySpendRow]",
+  "type": "object"
+}

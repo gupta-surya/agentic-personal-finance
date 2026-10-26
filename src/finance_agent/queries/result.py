@@ -8,7 +8,7 @@ Money is ``Decimal`` and serializes to JSON as a string, so no precision is lost
 between Postgres and the browser. Floats are rejected on the way in.
 """
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Generic, Self, TypeVar
 
@@ -16,6 +16,7 @@ from pydantic import (
     BaseModel,
     BeforeValidator,
     ConfigDict,
+    Field,
     JsonValue,
     field_validator,
     model_validator,
@@ -29,6 +30,13 @@ def _reject_float(value: object) -> object:
 
 
 Money = Annotated[Decimal, BeforeValidator(_reject_float)]
+
+# What every money-valued query says about its own signs, so a reader (or a model)
+# can't misread them. Implementations put this in ``QueryResult.amounts_in``.
+AMOUNTS_IN_DECIMAL = (
+    "Decimal amounts as strings, in the currency named in params. "
+    "Spend is a positive magnitude; refunds net against it."
+)
 
 
 def _first_of_month(value: date) -> date:
@@ -53,8 +61,18 @@ class QueryResult(BaseModel, Generic[RowT]):  # noqa: UP046 - pydantic generics 
     params: dict[str, JsonValue]  # the arguments used, JSON-encoded (dates as ISO strings)
     result_id: str  # unique per execution; the verifier cites this
     data_version: str  # opaque; changes whenever the underlying data may have changed
+    as_of: datetime  # when the underlying data was last synced (timezone-aware)
+    amounts_in: str  # units and sign conventions, in words (see AMOUNTS_IN_DECIMAL)
     value: Money | None = None
     rows: list[RowT] | None = None
+    totals: dict[str, Money] = Field(default_factory=dict)  # named column totals, if any
+
+    @field_validator("as_of")
+    @classmethod
+    def _as_of_is_aware(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            raise ValueError("as_of must be timezone-aware")
+        return value
 
     @model_validator(mode="after")
     def _exactly_one_payload(self) -> Self:
