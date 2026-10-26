@@ -7,7 +7,6 @@ example because the tenant wasn't provisioned when the pull arrived.
 """
 
 import hashlib
-import json
 
 import psycopg
 from psycopg.types.json import Jsonb
@@ -26,14 +25,16 @@ _INSERT = """
 """
 
 
-def _queryable_json(body: bytes) -> str | None:
-    """The body as text if it is JSON, else None. Only used for the queryable copy."""
+def _queryable_text(body: bytes) -> str | None:
+    """The body as text for the queryable JSON copy, or None if it isn't UTF-8.
+
+    Whether it is valid JSON is Postgres's call (see ``record_pull``), so the body
+    is parsed once in Python, by the normalizer.
+    """
     try:
-        text = body.decode("utf-8")
-        json.loads(text)
-    except ValueError:
+        return body.decode("utf-8")
+    except UnicodeDecodeError:
         return None
-    return text
 
 
 def record_pull(conn: Connection, tenant_id: str, pull: RawPull) -> tuple[int, bool]:
@@ -64,7 +65,7 @@ def record_pull(conn: Connection, tenant_id: str, pull: RawPull) -> tuple[int, b
     with conn.transaction():
         try:
             with conn.transaction():  # savepoint: Postgres can reject JSON that Python accepts
-                row = insert(_queryable_json(pull.body))
+                row = insert(_queryable_text(pull.body))
         except psycopg.errors.DataError:
             row = insert(None)
         if row is not None:
@@ -85,12 +86,13 @@ def finish_pull(
     dialect: str | None,
     note: str | None,
 ) -> None:
-    """Record the processing outcome. The stored bytes are never touched."""
+    """Record the processing outcome (only when it changed). The stored bytes are never touched."""
     conn.execute(
         """
         UPDATE raw_pulls
         SET parse_status = %s, dialect_detected = %s, parse_error = %s
         WHERE tenant_id = %s AND id = %s
+          AND (parse_status, dialect_detected, parse_error) IS DISTINCT FROM (%s, %s, %s)
         """,
-        (status, dialect, note, tenant_id, raw_pull_id),
+        (status, dialect, note, tenant_id, raw_pull_id, status, dialect, note),
     )

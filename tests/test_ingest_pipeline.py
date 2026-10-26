@@ -163,7 +163,7 @@ def test_month_totals_depend_on_the_users_timezone(
 ) -> None:
     ingest(conn, TENANT, pull_from_file(V1), tz)
 
-    assert spend_by_category(conn, TENANT, date(2026, 3, 1), "groceries") == march_groceries
+    assert spend_by_category(conn, TENANT, date(2026, 3, 1), "groceries", "USD") == march_groceries
 
 
 # --- bronze (B6, B7) -------------------------------------------------------
@@ -448,7 +448,7 @@ def test_inverted_sign_source_stores_the_same_signed_amounts(conn: Connection) -
         ("inverted-test", "A1", "x1", Decimal("-12.50")),
         ("simplefin", "A1", "x1", Decimal("-12.50")),
     ]
-    assert spend_by_category(conn, TENANT, date(2026, 3, 1), "groceries") == Decimal("25.00")
+    assert spend_by_category(conn, TENANT, date(2026, 3, 1), "groceries", "USD") == Decimal("25.00")
 
 
 # --- migrations with data and connection hygiene -------------------------

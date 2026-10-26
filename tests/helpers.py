@@ -33,6 +33,12 @@ def ingest_file(conn: Connection, tenant_id: str, name: str, tz: ZoneInfo = UTC_
     return ingest(conn, tenant_id, pull_from_file(name), tz)
 
 
+def database_url() -> str:
+    return os.environ.get(
+        "TEST_DATABASE_URL", "postgresql://finance:finance@127.0.0.1:5432/finance_test"
+    )
+
+
 def alembic(action: str, revision: str) -> None:
     """Run ``alembic upgrade|downgrade <revision>`` against the test database."""
     url = os.environ.get(
