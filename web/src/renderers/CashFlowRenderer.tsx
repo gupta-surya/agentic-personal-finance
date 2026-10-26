@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { Money } from "../components/Money";
 import { formatMonth, formatMoney, signOf } from "../lib/money";
-import { axisMoney, pivotSeries, seriesLabel, specCurrency, type Row } from "./chartData";
+import { animationsOn, axisMoney, pivotSeries, seriesLabel, specCurrency, type Row } from "./chartData";
 import type { Renderer } from "./registry";
 
 const COLORS = {
@@ -100,9 +100,10 @@ export const CashFlowRenderer: Renderer = ({ spec }) => {
         <Legend />
         {/* The zero baseline is the axis origin, not a figure from any result. */}
         <ReferenceLine y={0} stroke="var(--text-muted)" />
-        <Bar dataKey="inflow" name={labels.inflow} fill={COLORS.inflow} radius={[3, 3, 0, 0]} />
-        <Bar dataKey="outflow" name={labels.outflow} fill={COLORS.outflow} radius={[3, 3, 0, 0]} />
+        <Bar isAnimationActive={animationsOn()} dataKey="inflow" name={labels.inflow} fill={COLORS.inflow} radius={[3, 3, 0, 0]} />
+        <Bar isAnimationActive={animationsOn()} dataKey="outflow" name={labels.outflow} fill={COLORS.outflow} radius={[3, 3, 0, 0]} />
         <Line
+          isAnimationActive={animationsOn()}
           dataKey="net"
           name={labels.net}
           stroke={COLORS.net}
@@ -111,6 +112,7 @@ export const CashFlowRenderer: Renderer = ({ spec }) => {
         />
         {ids.includes("running_net") && (
           <Line
+            isAnimationActive={animationsOn()}
             dataKey="running_net"
             name={labels.running_net}
             stroke={COLORS.running_net}
