@@ -45,7 +45,8 @@ class SyntheticTransaction:
 def synthetic_transactions() -> list[SyntheticTransaction]:
     """Sep 2025 – Oct 2026 of a plausible household, plus the awkward cases:
     a refund (Mar 2026 groceries), an uncategorized charge (Mar 2026), a transfer
-    pair (Feb 2026), a pending charge (Oct 2026) and a EUR charge (Mar 2026)."""
+    pair (Feb 2026), a pending charge (Oct 2026), a EUR charge (Mar 2026) and an
+    overspent month (Jun 2026)."""
     txns: list[SyntheticTransaction] = []
     for i in range(14):
         year, month = 2025 + (8 + i) // 12, (8 + i) % 12 + 1
@@ -71,6 +72,8 @@ def synthetic_transactions() -> list[SyntheticTransaction]:
         SyntheticTransaction(date(2026, 2, 10), Decimal("-500.00"), None, internal_transfer=True),
         SyntheticTransaction(date(2026, 2, 10), Decimal("500.00"), None, internal_transfer=True),
         SyntheticTransaction(date(2026, 10, 24), Decimal("-50.00"), "dining", pending=True),
+        # An overspent month (Jun 2026: spend exceeds the 3200.00 income), for demos
+        SyntheticTransaction(date(2026, 6, 18), Decimal("-2400.00"), "travel"),
     ]
     return sorted(txns, key=lambda t: (t.posted, t.amount))
 
