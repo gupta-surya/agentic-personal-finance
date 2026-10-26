@@ -63,6 +63,26 @@ def test_the_result_names_both_sources() -> None:
     assert result.data_version == "dv_1+dv_2"
 
 
+def with_changes(result: QueryResult[ScalarRow], **changes: object) -> QueryResult[ScalarRow]:
+    return result.model_copy(update=changes)
+
+
+def test_different_queries_currencies_or_units_are_refused() -> None:
+    usd = with_changes(scalar("a", "10.00"), params={"currency": "USD"})
+    eur = with_changes(scalar("b", "5.00"), params={"currency": "EUR"})
+    with pytest.raises(ValueError, match="same currency"):
+        period_delta(usd, eur)
+
+    spend = scalar("a", "10.00")
+    income = with_changes(scalar("b", "5.00"), query="other_query")
+    with pytest.raises(ValueError, match="one query"):
+        period_delta(spend, income)
+
+    cents = with_changes(scalar("b", "5.00"), amounts_in="Integer cents.")
+    with pytest.raises(ValueError, match="same units"):
+        period_delta(scalar("a", "10.00"), cents)
+
+
 def test_rows_results_are_rejected() -> None:
     with pytest.raises(ValueError, match="scalar"):
         period_delta(scalar("c", None), scalar("p", "1.00"))

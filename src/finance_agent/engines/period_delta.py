@@ -25,6 +25,15 @@ def period_delta(
     traceable to the two queries it came from."""
     if current.value is None or previous.value is None:
         raise ValueError("period_delta needs two scalar results")
+    # Subtracting different queries or currencies would give a number that means nothing.
+    if current.query != previous.query:
+        raise ValueError(
+            f"period_delta needs one query, got {current.query!r} and {previous.query!r}"
+        )
+    if current.amounts_in != previous.amounts_in:
+        raise ValueError("period_delta needs both results in the same units")
+    if current.params.get("currency") != previous.params.get("currency"):
+        raise ValueError("period_delta needs both results in the same currency")
     amount = current.value - previous.value
     percent = (
         (amount / abs(previous.value)).quantize(Decimal("0.0001")) if previous.value != 0 else None

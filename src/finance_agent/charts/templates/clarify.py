@@ -6,10 +6,11 @@ against the registry here, so a chip can never name a template or parameters tha
 exist. There is no data behind a clarify card: no period, series or sources.
 """
 
+import re
 from datetime import date
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from finance_agent.charts.registry import (
     Template,
@@ -20,6 +21,11 @@ from finance_agent.charts.registry import (
 from finance_agent.charts.spec import ChartSpec, Clarify, ClarifyOption, Table
 from finance_agent.queries.series import SeriesCatalog
 
+# A currency symbol or code beside digits, or digits beside a percent sign.
+_FIGURE = re.compile(
+    r"[$€£]\s*\d|\d\s*(?:%|percent\b)|\d\s*(?:USD|EUR|GBP|dollars?|euros?)\b", re.I
+)
+
 
 class ClarifyParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -28,9 +34,20 @@ class ClarifyParams(BaseModel):
     question: str = Field(min_length=1, max_length=300)
     options: list[ClarifyOption] = Field(min_length=2, max_length=4)
 
+    @model_validator(mode="after")
+    def _text_states_no_figures(self) -> Self:
+        """A question and its labels are model-written text, so they may not state a
+        dollar amount or a percentage: such a figure would have no ``result_id``. (Words
+        like "last 6 months" are fine. Figures spelled out in words are not detected.)"""
+        for text in (self.question, *(option.label for option in self.options)):
+            if _FIGURE.search(text):
+                raise ValueError("clarify text may not state an amount of money or a percentage")
+        return self
+
 
 def _check_option(index: int, option: ClarifyOption, registry: TemplateRegistry) -> None:
-    where = f"options[{index}] ({option.label!r})"
+    # The index only: the label is untrusted text and does not belong in error messages.
+    where = f"options[{index}]"
     if option.template_id == "clarify":
         raise TemplateParamsError(f"{where}: an option cannot be another clarify question")
     try:

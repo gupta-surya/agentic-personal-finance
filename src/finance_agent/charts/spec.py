@@ -9,7 +9,7 @@ and every such id must appear in ``sources`` so a number can always be traced.
 from datetime import datetime
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, JsonValue, model_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
 from finance_agent.charts.period import ResolvedPeriod
 from finance_agent.queries.result import Money
@@ -119,7 +119,7 @@ class Table(_Frozen):
 class ClarifyOption(_Frozen):
     """A ready request: choosing it sends ``{template_id, params}`` to the render route."""
 
-    label: str
+    label: str = Field(min_length=1, max_length=80)
     template_id: str
     params: dict[str, JsonValue]
 

@@ -204,6 +204,8 @@
         "description": "A ready request: choosing it sends ``{template_id, params}`` to the render route.",
         "properties": {
           "label": {
+            "maxLength": 80,
+            "minLength": 1,
             "title": "Label",
             "type": "string"
           },
