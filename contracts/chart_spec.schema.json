@@ -1,0 +1,398 @@
+{
+  "$defs": {
+    "Annotation": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "reference_line",
+            "reference_dot"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "result_id": {
+          "title": "Result Id",
+          "type": "string"
+        },
+        "x": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Y"
+        }
+      },
+      "required": [
+        "kind",
+        "label",
+        "result_id"
+      ],
+      "title": "Annotation",
+      "type": "object"
+    },
+    "Assumption": {
+      "description": "An input behind a number, shown under the chart; a control makes it adjustable.",
+      "properties": {
+        "control": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SliderControl"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "question",
+            "you_entered",
+            "default",
+            "data"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "value",
+        "source"
+      ],
+      "title": "Assumption",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "PeriodPreset": {
+      "enum": [
+        "this_month",
+        "last_month",
+        "last_3_months",
+        "last_6_months",
+        "last_12_months",
+        "year_to_date",
+        "last_year",
+        "all_time",
+        "custom"
+      ],
+      "title": "PeriodPreset",
+      "type": "string"
+    },
+    "Point": {
+      "description": "``x`` is a label or ISO date/month string. Lines and bars set ``y``; ranges set\n``low`` and ``high`` instead.",
+      "properties": {
+        "high": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "High"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Low"
+        },
+        "x": {
+          "title": "X",
+          "type": "string"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Y"
+        }
+      },
+      "required": [
+        "x"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "ResolvedPeriod": {
+      "description": "Explicit dates, echoed in the chart spec so the covered range is visible.",
+      "properties": {
+        "end": {
+          "format": "date",
+          "title": "End",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/PeriodPreset"
+        },
+        "start": {
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preset",
+        "start",
+        "end",
+        "label"
+      ],
+      "title": "ResolvedPeriod",
+      "type": "object"
+    },
+    "Series": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "line",
+            "bar",
+            "area",
+            "range",
+            "point"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/Point"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "result_id": {
+          "title": "Result Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "result_id",
+        "points"
+      ],
+      "title": "Series",
+      "type": "object"
+    },
+    "SliderControl": {
+      "properties": {
+        "max": {
+          "title": "Max",
+          "type": "string"
+        },
+        "min": {
+          "title": "Min",
+          "type": "string"
+        },
+        "step": {
+          "title": "Step",
+          "type": "string"
+        },
+        "type": {
+          "const": "slider",
+          "default": "slider",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "step"
+      ],
+      "title": "SliderControl",
+      "type": "object"
+    },
+    "Source": {
+      "description": "One query or engine result that backs part of the chart.",
+      "properties": {
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "data_version": {
+          "title": "Data Version",
+          "type": "string"
+        },
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "result_id": {
+          "title": "Result Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "query",
+        "data_version",
+        "as_of"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Table": {
+      "description": "The same data as the chart, for screen readers and the table toggle.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "rows": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Rows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns",
+        "rows"
+      ],
+      "title": "Table",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "annotations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Annotation"
+      },
+      "title": "Annotations",
+      "type": "array"
+    },
+    "assumptions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Assumption"
+      },
+      "title": "Assumptions",
+      "type": "array"
+    },
+    "params": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Params",
+      "type": "object"
+    },
+    "period": {
+      "$ref": "#/$defs/ResolvedPeriod"
+    },
+    "series": {
+      "items": {
+        "$ref": "#/$defs/Series"
+      },
+      "title": "Series",
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/Source"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "table": {
+      "$ref": "#/$defs/Table"
+    },
+    "template_id": {
+      "title": "Template Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "template_id",
+    "title",
+    "params",
+    "period",
+    "series",
+    "sources",
+    "table"
+  ],
+  "title": "ChartSpec",
+  "type": "object"
+}
