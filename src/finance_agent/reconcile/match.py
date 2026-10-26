@@ -168,7 +168,7 @@ def _rule_groups(
     return {frozenset(txn_ids): (gid, conf, ev) for gid, conf, ev, txn_ids in rows}
 
 
-def _dissolve(conn: Connection, tenant_id: str, group_id: int) -> None:
+def dissolve_group(conn: Connection, tenant_id: str, group_id: int) -> None:
     conn.execute(
         """
         UPDATE transactions
@@ -192,7 +192,7 @@ def reconcile(conn: Connection, tenant_id: str) -> ReconcileResult:
         dissolved = 0
         for key, (group_id, _, _) in existing.items():
             if key not in desired:
-                _dissolve(conn, tenant_id, group_id)
+                dissolve_group(conn, tenant_id, group_id)
                 dissolved += 1
 
         matched = matched_low = updated = unchanged = 0
