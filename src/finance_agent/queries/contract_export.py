@@ -9,16 +9,22 @@ exact decimal, e.g. ``"285.32"``. Parse it with a decimal library, not a float.
 """
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from finance_agent.queries.result import CashFlowRow, MonthlyCategorySpendRow, QueryResult
+from finance_agent.queries.result import (
+    AMOUNTS_IN_DECIMAL,
+    CashFlowRow,
+    MonthlyCategorySpendRow,
+    QueryResult,
+)
 
 CONTRACTS_DIR = Path(__file__).resolve().parents[3] / "contracts"
 
 _PARAMS: dict[str, Any] = {"start": "2026-02-01", "end": "2026-04-01", "currency": "USD"}
+_AS_OF = datetime(2026, 4, 2, 12, 0, tzinfo=UTC)
 
 
 def schemas() -> dict[str, dict[str, Any]]:
@@ -36,6 +42,9 @@ def examples() -> dict[str, dict[str, Any]]:
         params=_PARAMS,
         result_id="res_7f3a",
         data_version="dv_12",
+        as_of=_AS_OF,
+        amounts_in=AMOUNTS_IN_DECIMAL,
+        totals={"spend": Decimal("717.49")},
         rows=[
             MonthlyCategorySpendRow(
                 month=date(2026, 2, 1), category="groceries", spend=Decimal("412.18")
@@ -51,6 +60,13 @@ def examples() -> dict[str, dict[str, Any]]:
         params=_PARAMS,
         result_id="res_7f3b",
         data_version="dv_12",
+        as_of=_AS_OF,
+        amounts_in=AMOUNTS_IN_DECIMAL,
+        totals={
+            "inflow": Decimal("6400.00"),
+            "outflow": Decimal("6061.15"),
+            "net": Decimal("338.85"),
+        },
         rows=[
             CashFlowRow(
                 month=date(2026, 2, 1),

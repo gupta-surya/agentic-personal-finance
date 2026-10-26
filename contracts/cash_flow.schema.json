@@ -33,6 +33,15 @@
     "JsonValue": {}
   },
   "properties": {
+    "amounts_in": {
+      "title": "Amounts In",
+      "type": "string"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
     "data_version": {
       "title": "Data Version",
       "type": "string"
@@ -67,6 +76,13 @@
       "default": null,
       "title": "Rows"
     },
+    "totals": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Totals",
+      "type": "object"
+    },
     "value": {
       "anyOf": [
         {
@@ -84,7 +100,9 @@
     "query",
     "params",
     "result_id",
-    "data_version"
+    "data_version",
+    "as_of",
+    "amounts_in"
   ],
   "title": "QueryResult[CashFlowRow]",
   "type": "object"

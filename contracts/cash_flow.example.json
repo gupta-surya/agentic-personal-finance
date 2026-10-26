@@ -1,4 +1,6 @@
 {
+  "amounts_in": "Decimal amounts as strings, in the currency named in params. Spend is a positive magnitude; refunds net against it.",
+  "as_of": "2026-04-02T12:00:00Z",
   "data_version": "dv_12",
   "params": {
     "currency": "USD",
@@ -21,5 +23,10 @@
       "outflow": "3410.75"
     }
   ],
+  "totals": {
+    "inflow": "6400.00",
+    "net": "338.85",
+    "outflow": "6061.15"
+  },
   "value": null
 }
