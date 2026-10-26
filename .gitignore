@@ -9,6 +9,10 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 
+# Frontend
+web/node_modules/
+web/dist/
+
 # OS
 .DS_Store
 
