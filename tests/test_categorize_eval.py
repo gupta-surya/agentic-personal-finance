@@ -118,6 +118,13 @@ def run_eval(conn: Connection, threshold: float | None = None) -> EvalResult:
         if row.truth is not None and now[row.ext_id] != row.truth:
             correct_category(conn, TENANT, ids[row.ext_id], row.truth)
             corrections += 1
+    user_rows = {
+        r[0]
+        for r in conn.execute(
+            "SELECT external_id FROM transactions WHERE category_source = 'user'"
+        ).fetchall()
+    }
+    assert user_rows <= {r.ext_id for r in first}, "corrections must come from the first half only"
     classifiable = [r for r in repeat if r.truth is not None]
     return EvalResult(
         starter, score(conn, second), score(conn, repeat), score(conn, classifiable), corrections

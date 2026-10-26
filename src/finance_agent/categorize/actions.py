@@ -43,17 +43,21 @@ def correct_category(conn: Connection, tenant_id: str, txn_id: int, category: st
     The row becomes ``user``-sourced, its merchant gets a ``user`` rule, and the engine
     re-runs so the merchant's other rows follow (rows the user set themselves stay). A
     description that normalizes to nothing has no merchant to remember, so only the row is
-    set. Works on pending rows too.
+    set. Works on pending rows too. Internal-transfer legs cannot be categorized (they must
+    never count as spend), so correcting one raises ``ValueError``.
     """
     with conn.transaction():
         lock_categorization(conn, tenant_id)
         _require_category(conn, tenant_id, category)
         row = conn.execute(
-            "SELECT description FROM transactions WHERE tenant_id = %s AND id = %s",
+            "SELECT description, is_internal_transfer FROM transactions "
+            "WHERE tenant_id = %s AND id = %s",
             (tenant_id, txn_id),
         ).fetchone()
         if row is None:
             raise LookupError(f"no transaction {txn_id} for tenant {tenant_id!r}")
+        if row[1]:
+            raise ValueError(f"transaction {txn_id} is an internal transfer; it has no category")
         key = normalize_merchant(row[0])
         conn.execute(
             """

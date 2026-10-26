@@ -58,6 +58,17 @@ def test_a_correction_leaves_a_different_user_set_row_alone(conn: Connection) ->
     assert _rule(conn, "CORNER MARKET") == ("groceries", "user")  # latest correction wins the rule
 
 
+def test_a_transfer_leg_cannot_be_corrected_into_a_category(conn: Connection) -> None:
+    load(conn, [Txn("t", "ONLINE TRANSFER")])
+    conn.execute("UPDATE transactions SET is_internal_transfer = true WHERE external_id = 't'")
+
+    with pytest.raises(ValueError, match="internal transfer"):
+        correct_category(conn, TENANT, _id(conn, "t"), "dining")
+
+    assert state(conn) == {"t": (None, None)}
+    assert _rule(conn, "ONLINE TRANSFER") is None
+
+
 def test_a_correction_rejects_an_unknown_category_and_changes_nothing(conn: Connection) -> None:
     load(conn, [Txn("a", "CORNER MARKET")])
 
@@ -174,6 +185,11 @@ def test_deleting_a_rule_resets_only_the_rows_that_depended_on_it(conn: Connecti
         "UPDATE transactions SET category = 'dining', category_source = 'user' "
         "WHERE external_id = 'n_user'"
     )
+    # a connector hint: rule-sourced, but no rule stands behind it
+    conn.execute(
+        "UPDATE transactions SET category = 'groceries', category_source = 'rule' "
+        "WHERE external_id = 'other'"
+    )
 
     delete_rule(conn, TENANT, "NETFLIX")
 
@@ -182,7 +198,7 @@ def test_deleting_a_rule_resets_only_the_rows_that_depended_on_it(conn: Connecti
         "n2": (None, None),
         "n_user": ("dining", "user"),  # the user's own row stays
         "s1": ("subscriptions", "rule"),  # a different merchant is untouched
-        "other": (None, None),
+        "other": ("groceries", "rule"),  # a hint no deleted rule produced is untouched
     }
     assert _rule(conn, "NETFLIX") is None and _rule(conn, "SPOTIFY") is not None
 

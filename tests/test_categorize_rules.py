@@ -283,3 +283,7 @@ def test_the_categorize_package_imports_no_model_or_network_code() -> None:
 
 def test_the_default_threshold_is_in_the_allowed_tuning_range() -> None:
     assert 0.7 <= FUZZY_THRESHOLD <= 0.9
+
+
+def test_the_default_threshold_is_the_value_tuned_in_the_pr() -> None:
+    assert FUZZY_THRESHOLD == 0.8
