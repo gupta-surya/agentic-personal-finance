@@ -229,7 +229,9 @@ class FakeSeriesCatalog:
             Decimal(0),
         )
         total_spend = (
-            spend.get(category, Decimal(0)) if category else sum(spend.values(), Decimal(0))
+            spend.get(category, Decimal(0))
+            if category is not None
+            else sum(spend.values(), Decimal(0))
         )
         value = {"spend": total_spend, "income": income, "net": income - total_spend}[measure]
         return QueryResult[ScalarRow](

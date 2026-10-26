@@ -171,3 +171,12 @@ def test_kpi_with_no_activity_is_zero_and_category_needs_spend() -> None:
     assert empty.value == Decimal("0")
     with pytest.raises(ValueError, match="category"):
         catalog().kpi("income", MAR, APR, "USD", category="groceries")
+
+
+def test_kpi_empty_string_category_is_a_category_not_all_spend() -> None:
+    narrowed = catalog().kpi("spend", MAR, APR, "USD", category="")
+
+    assert narrowed.value == Decimal("0")  # no category is named ""
+    assert narrowed.params["category"] == ""
+    with pytest.raises(ValueError, match="category"):
+        catalog().kpi("net", MAR, APR, "USD", category="")

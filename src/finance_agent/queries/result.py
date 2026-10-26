@@ -31,6 +31,10 @@ def _reject_float(value: object) -> object:
 
 Money = Annotated[Decimal, BeforeValidator(_reject_float)]
 
+# A dimensionless fraction (``0.1234`` is 12.34%), not an amount of money. It is exact
+# like Money and serializes as a string, but never carries a currency.
+Share = Annotated[Decimal, BeforeValidator(_reject_float)]
+
 # What every money-valued query says about its own signs, so a reader (or a model)
 # can't misread them. Implementations put this in ``QueryResult.amounts_in``.
 AMOUNTS_IN_DECIMAL = (
@@ -117,7 +121,7 @@ class SpendBreakdownRow(BaseModel):
 
     group: str | None  # None = uncategorized, or the folded bucket when is_other
     amount: Money
-    share: Money
+    share: Share
     is_other: bool = False  # the bucket that folds groups outside ``top_n``
 
     @model_validator(mode="after")
