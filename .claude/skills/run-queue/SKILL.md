@@ -38,5 +38,5 @@ Stop and summarize where things stand when any of these is true:
 - You have 2 open, unmerged PRs in this stream.
 - No approved spec is left. Draft the next one from `$DOCS/ROADMAP.md` as a file
   in `$DOCS/specs/` with `Status: draft`, then stop.
-- You need a decision outside your autonomy (see "How we work" in CLAUDE.md).
+- You need a decision outside your autonomy (see "Decisions" in CLAUDE.md).
 - CI fails twice on the same problem.
