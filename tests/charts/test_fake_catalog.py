@@ -1,6 +1,8 @@
 from datetime import date
 from decimal import Decimal
 
+import pytest
+
 from finance_agent.charts.fake_catalog import FakeSeriesCatalog
 from finance_agent.queries.series import SeriesCatalog
 
@@ -95,3 +97,77 @@ def test_results_are_deterministic_with_fresh_result_ids() -> None:
 def test_earliest_date_skips_pending_and_transfers() -> None:
     assert FakeSeriesCatalog().earliest_date() == date(2025, 9, 1)
     assert FakeSeriesCatalog([]).earliest_date() is None
+
+
+def test_march_spend_breakdown_exact_values_and_shares() -> None:
+    result = catalog().spend_breakdown(MAR, APR, "USD")
+
+    assert result.rows is not None
+    assert [(r.group, r.amount, r.share, r.is_other) for r in result.rows] == [
+        ("rent", Decimal("1500.00"), Decimal("0.7377"), False),
+        ("groceries", Decimal("366.20"), Decimal("0.1801"), False),
+        ("dining", Decimal("94.50"), Decimal("0.0465"), False),
+        ("transport", Decimal("52.66"), Decimal("0.0259"), False),
+        (None, Decimal("19.99"), Decimal("0.0098"), False),
+    ]
+    assert result.totals == {"spend": Decimal("2033.35")}
+    assert sum(r.share for r in result.rows) == Decimal("1.0000")
+
+
+def test_spend_breakdown_top_n_folds_the_rest_into_a_flagged_bucket() -> None:
+    result = catalog().spend_breakdown(MAR, APR, "USD", top_n=2)
+
+    assert result.rows is not None
+    assert [(r.group, r.amount, r.is_other) for r in result.rows] == [
+        ("rent", Decimal("1500.00"), False),
+        ("groceries", Decimal("366.20"), False),
+        (None, Decimal("167.15"), True),  # dining + transport + uncategorized
+    ]
+    assert result.rows[-1].share == Decimal("0.0822")
+    assert result.totals == {"spend": Decimal("2033.35")}
+    assert result.params["top_n"] == 2
+
+
+def test_spend_breakdown_empty_range_has_no_rows_or_totals() -> None:
+    result = catalog().spend_breakdown(date(2020, 1, 1), date(2020, 2, 1), "USD")
+    assert result.rows == []
+    assert result.totals == {}
+
+
+def test_series_top_n_folds_per_month_and_keeps_the_totals() -> None:
+    plain = catalog().monthly_spend_by_category(MAR, date(2026, 5, 1), "USD")
+    folded = catalog().monthly_spend_by_category(MAR, date(2026, 5, 1), "USD", top_n=2)
+
+    assert folded.rows is not None and plain.rows is not None
+    assert folded.totals == plain.totals
+    march = [r for r in folded.rows if r.month == MAR]
+    assert [(r.category, r.is_other) for r in march] == [
+        ("groceries", False),
+        ("rent", False),
+        (None, True),
+    ]
+    assert march[-1].spend == Decimal("167.15")
+    assert sum(r.is_other for r in folded.rows) == 2  # one folded row per month
+
+
+def test_top_n_must_be_positive() -> None:
+    with pytest.raises(ValueError, match="top_n"):
+        catalog().spend_breakdown(MAR, APR, "USD", top_n=0)
+
+
+def test_kpi_values_match_the_other_queries() -> None:
+    fake = catalog()
+    assert fake.kpi("spend", MAR, APR, "USD").value == Decimal("2033.35")
+    assert fake.kpi("income", MAR, APR, "USD").value == Decimal("3200.00")
+    assert fake.kpi("net", MAR, APR, "USD").value == Decimal("1166.65")
+    groceries = fake.kpi("spend", MAR, APR, "USD", category="groceries")
+    assert groceries.value == Decimal("366.20")  # refund netted
+    assert groceries.rows is None
+    assert groceries.params["category"] == "groceries"
+
+
+def test_kpi_with_no_activity_is_zero_and_category_needs_spend() -> None:
+    empty = catalog().kpi("spend", date(2020, 1, 1), date(2020, 2, 1), "USD")
+    assert empty.value == Decimal("0")
+    with pytest.raises(ValueError, match="category"):
+        catalog().kpi("income", MAR, APR, "USD", category="groceries")

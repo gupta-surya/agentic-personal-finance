@@ -19,6 +19,8 @@ from finance_agent.queries.result import (
     CashFlowRow,
     MonthlyCategorySpendRow,
     QueryResult,
+    ScalarRow,
+    SpendBreakdownRow,
 )
 
 CONTRACTS_DIR = Path(__file__).resolve().parents[3] / "contracts"
@@ -33,6 +35,10 @@ def schemas() -> dict[str, dict[str, Any]]:
             MonthlyCategorySpendRow
         ].model_json_schema(mode="serialization"),
         "cash_flow.schema.json": QueryResult[CashFlowRow].model_json_schema(mode="serialization"),
+        "spend_breakdown.schema.json": QueryResult[SpendBreakdownRow].model_json_schema(
+            mode="serialization"
+        ),
+        "kpi.schema.json": QueryResult[ScalarRow].model_json_schema(mode="serialization"),
     }
 
 
@@ -82,9 +88,35 @@ def examples() -> dict[str, dict[str, Any]]:
             ),
         ],
     )
+    breakdown = QueryResult[SpendBreakdownRow](
+        query="spend_breakdown",
+        params={**_PARAMS, "group_by": "category", "top_n": 2},
+        result_id="res_7f3c",
+        data_version="dv_12",
+        as_of=_AS_OF,
+        amounts_in=AMOUNTS_IN_DECIMAL,
+        totals={"spend": Decimal("717.49")},
+        rows=[
+            SpendBreakdownRow(group="groceries", amount=Decimal("697.50"), share=Decimal("0.9721")),
+            SpendBreakdownRow(
+                group=None, amount=Decimal("19.99"), share=Decimal("0.0279"), is_other=True
+            ),
+        ],
+    )
+    kpi = QueryResult[ScalarRow](
+        query="kpi",
+        params={**_PARAMS, "measure": "spend", "category": "groceries"},
+        result_id="res_7f3d",
+        data_version="dv_12",
+        as_of=_AS_OF,
+        amounts_in=AMOUNTS_IN_DECIMAL,
+        value=Decimal("697.50"),
+    )
     return {
         "monthly_spend_by_category.example.json": spend.model_dump(mode="json"),
         "cash_flow.example.json": flow.model_dump(mode="json"),
+        "spend_breakdown.example.json": breakdown.model_dump(mode="json"),
+        "kpi.example.json": kpi.model_dump(mode="json"),
     }
 
 

@@ -15,6 +15,11 @@
           ],
           "title": "Category"
         },
+        "is_other": {
+          "default": false,
+          "title": "Is Other",
+          "type": "boolean"
+        },
         "month": {
           "format": "date",
           "title": "Month",
