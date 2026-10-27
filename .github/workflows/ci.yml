@@ -68,6 +68,8 @@ jobs:
         run: npm run build
       - name: No external asset loads in the build
         run: npm run check:no-external
+      - name: No dev-only code in the build
+        run: npm run check:no-dev
       - name: Tests
         run: npm test
 
