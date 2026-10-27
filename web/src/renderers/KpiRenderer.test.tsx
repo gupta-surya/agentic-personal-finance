@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach } from "vitest";
 import type { ChartSpec, Series } from "../api/types";
 import { ChartFrame } from "../components/ChartFrame";
-import { swatchSpec } from "../fixtures/specs";
+import { swatchSpec } from "../dev/specs";
 import { registerAllRenderers } from "./index";
 import { clearRenderers } from "./registry";
 
