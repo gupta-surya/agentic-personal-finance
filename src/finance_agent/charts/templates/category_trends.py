@@ -15,13 +15,13 @@ from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
     category_label,
+    format_change,
     format_money,
-    format_share,
     series_id,
     source_of,
     span_label,
 )
-from finance_agent.engines.category_trends import category_trends
+from finance_agent.engines.category_trends import FLAT_BAND, MIN_MONTHS, category_trends
 from finance_agent.queries.series import SeriesCatalog
 
 _BADGE = {
@@ -51,9 +51,8 @@ def build(params: CategoryTrendsParams, catalog: SeriesCatalog, today: date) -> 
     )
     if spend.rows is None:
         raise ValueError("monthly_spend_by_category must return rows")
-    if chosen:
-        spend = spend.model_copy(update={"rows": [r for r in spend.rows if r.category in chosen]})
-    trends = category_trends(spend, months)
+    # The engine applies the selection and records it, so the figures cite this exact result.
+    trends = category_trends(spend, months, only=chosen or None)
     assert trends.rows is not None
 
     cur = params.currency
@@ -72,7 +71,8 @@ def build(params: CategoryTrendsParams, catalog: SeriesCatalog, today: date) -> 
             label="Direction",
             value=(
                 "Compares the last half of the window with the first half: "
-                "5% or more is rising or falling, less is flat. Needs at least 4 months."
+                f"{FLAT_BAND:.0%} or more is rising or falling, less is flat. "
+                f"Needs at least {MIN_MONTHS} months."
             ),
             source="default",
         ),
@@ -117,9 +117,7 @@ def build(params: CategoryTrendsParams, catalog: SeriesCatalog, today: date) -> 
                     format_money(r.average, cur),
                     format_money(r.minimum, cur),
                     format_money(r.maximum, cur),
-                    "n/a"
-                    if r.change is None
-                    else ("+" if r.change > 0 else "") + format_share(r.change),
+                    format_change(r.change),
                     _BADGE[r.direction],
                 ]
                 for r, label in zip(trends.rows, labels, strict=True)

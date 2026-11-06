@@ -77,6 +77,28 @@ def test_the_five_percent_boundary(second_half_each: str, direction: str, change
     assert (row.direction, row.change) == (direction, Decimal(change))
 
 
+def test_the_badge_never_contradicts_the_displayed_change() -> None:
+    # 4.996% rounds to the displayed +5.00%: it is a trend, not flat
+    row = trend(["1000", "0", "1049.96", "0"])
+    assert (row.change, row.direction) == (Decimal("0.0500"), "rising")
+    # 4.994% rounds to 4.99%: flat
+    row = trend(["1000", "0", "1049.94", "0"])
+    assert (row.change, row.direction) == (Decimal("0.0499"), "flat")
+
+
+def test_a_selection_is_applied_by_the_engine_and_recorded_in_its_params() -> None:
+    rows = [("rent", 1, "5"), ("dining", 1, "5"), ("travel", 1, "5")]
+    result = category_trends(source(*rows), window(4), only={"travel", "rent"})
+
+    assert result.rows is not None
+    assert [r.category for r in result.rows] == ["rent", "travel"]
+    assert result.params["categories"] == ["rent", "travel"]
+    assert "categories" not in category_trends(source(*rows), window(4)).params
+    # the folded bucket is never selected by name
+    folded = category_trends(source(("x", 1, "5"), other=True), window(4), only={"x"})
+    assert folded.rows == []
+
+
 def test_a_refund_month_nets_below_zero_and_is_kept() -> None:
     row = trend(["100", "100", "-25", "100"])  # month 3: a refund exceeded that month's spend
 
