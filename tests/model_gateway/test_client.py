@@ -18,7 +18,7 @@ from finance_agent.model_gateway import (
 )
 from finance_agent.model_gateway.prompting import MAX_UNTRUSTED_CHARS, untrusted_block
 from finance_agent.model_gateway.transport import GuardedTransport, HttpxTransport, Response
-from tests.model_gateway_helpers import LOCAL, FakeTransport, ok
+from tests.model_gateway.helpers import LOCAL, FakeTransport, ok
 
 SENTINEL = "SENTINEL-MERCHANT-7731"
 MSGS: list[Message] = [

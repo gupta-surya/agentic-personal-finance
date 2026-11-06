@@ -10,10 +10,10 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine
 
-from finance_agent.clients.simplefin import FixtureSimpleFinClient
 from finance_agent.db.loader import Connection
 from finance_agent.ingest.contract import RawPull
 from finance_agent.ingest.pipeline import IngestResult, ingest
+from finance_agent.ingest.simplefin.client import FixtureSimpleFinClient
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 FETCHED_AT = datetime(2026, 4, 2, 12, 0, tzinfo=UTC)
