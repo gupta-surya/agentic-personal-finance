@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { type DataSource, fetchSource } from "./api/client";
 import { Explorer } from "./Explorer";
 
 // The fixture page is development-only. `import.meta.env.DEV` is a build-time constant,
@@ -25,12 +26,23 @@ const useHash = () => {
 
 export function App() {
   const [theme, setTheme] = useState<Theme>("system");
+  const [source, setSource] = useState<DataSource | null>(null);
+  useEffect(() => {
+    fetchSource().then(setSource, () => setSource(null)); // unknown: show no label
+  }, []);
   const hash = useHash();
   const fixtures = Fixtures !== null && hash === "#/fixtures";
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{fixtures ? "Chart fixtures" : "Charts"}</h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-xl font-semibold">{fixtures ? "Chart fixtures" : "Charts"}</h1>
+          {source && (
+            <span className="text-sm text-[var(--text-muted)]" data-testid="data-source">
+              {source === "postgres" ? "Your data" : "Synthetic data"}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-4 text-sm">
           {Fixtures && (
             <a className="underline" href={fixtures ? "#/" : "#/fixtures"}>

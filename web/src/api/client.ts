@@ -1,5 +1,14 @@
 import type { ChartSpec } from "./types";
 
+export type DataSource = "synthetic" | "postgres";
+
+/** Which data the API is serving, so the page can say so. */
+export async function fetchSource(): Promise<DataSource> {
+  const response = await fetch("/charts/meta");
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return ((await response.json()) as { source: DataSource }).source;
+}
+
 /** POST /charts/render on the same origin (Vite proxies it to the local API in dev).
  *  Never calls anything else, and never another origin. */
 export async function renderChart(

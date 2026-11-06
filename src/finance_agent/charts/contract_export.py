@@ -11,7 +11,7 @@ from datetime import date
 from typing import Any
 
 from finance_agent.charts.api import create_app
-from finance_agent.charts.fake_catalog import FakeSeriesCatalog
+from finance_agent.charts.fake_catalog import fake_session
 from finance_agent.charts.registry import TemplateRegistry
 from finance_agent.charts.spec import ChartSpec
 from finance_agent.queries.contract_export import CONTRACTS_DIR
@@ -25,7 +25,7 @@ def schema() -> dict[str, Any]:
 
 
 def openapi() -> dict[str, Any]:
-    app = create_app(TemplateRegistry(), FakeSeriesCatalog, lambda: date(2026, 1, 1))
+    app = create_app(TemplateRegistry(), fake_session, lambda: date(2026, 1, 1))
     return app.openapi()
 
 

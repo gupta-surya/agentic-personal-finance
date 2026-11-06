@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from datetime import date
 from decimal import Decimal
 
@@ -119,7 +120,9 @@ def test_unknown_params_and_bad_periods_are_rejected() -> None:
 
 
 def test_served_over_http_with_string_money() -> None:
-    app = create_app(default_registry(), contract_example_catalog, lambda: TODAY)
+    app = create_app(
+        default_registry(), lambda: nullcontext(contract_example_catalog()), lambda: TODAY
+    )
     response = TestClient(app).post(
         "/charts/render", json={"template_id": "cash_flow", "params": {"period": MARCH}}
     )

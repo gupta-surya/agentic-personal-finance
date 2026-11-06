@@ -11,12 +11,13 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from finance_agent.charts.period import Period, resolve_period
+from finance_agent.charts.period import Period
 from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
     format_money,
     month_label,
+    resolve,
     source_of,
     span_label,
 )
@@ -44,7 +45,7 @@ def _title(net: Decimal | None, span: str, currency: str) -> str:
 
 
 def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
-    period = resolve_period(params.period, today)
+    period = resolve(params.period, today, catalog)
     result = catalog.cash_flow(period.start, period.end, params.currency)
     if result.rows is None:
         raise ValueError("cash_flow must return rows")
