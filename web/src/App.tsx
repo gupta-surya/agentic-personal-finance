@@ -1,29 +1,16 @@
-import { useEffect, useState } from "react";
-import { ChartFrame } from "./components/ChartFrame";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Explorer } from "./Explorer";
-import { emptySpec, swatchSpec, unknownTemplateSpec } from "./fixtures/specs";
-import { SwatchRenderer } from "./fixtures/SwatchRenderer";
-import { getRenderer, registerRenderer } from "./renderers/registry";
+
+// The fixture page is development-only. `import.meta.env.DEV` is a build-time constant,
+// so in production this is `null`, the dynamic import is removed, and src/dev is never
+// bundled.
+const Fixtures = import.meta.env.DEV ? lazy(() => import("./dev/Fixtures")) : null;
 
 type Theme = "system" | "light" | "dark";
 
 function applyTheme(theme: Theme) {
   if (theme === "system") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", theme);
-}
-
-/** Frame states from canned specs: no API needed. Open with #/fixtures. */
-function Fixtures() {
-  if (!getRenderer("fixture_swatch")) registerRenderer("fixture_swatch", SwatchRenderer);
-  return (
-    <>
-      <ChartFrame state={{ status: "ready", spec: swatchSpec }} />
-      <ChartFrame state={{ status: "ready", spec: unknownTemplateSpec }} />
-      <ChartFrame state={{ status: "ready", spec: emptySpec }} />
-      <ChartFrame state={{ status: "loading" }} />
-      <ChartFrame state={{ status: "error", message: "The render request failed (HTTP 422)." }} />
-    </>
-  );
 }
 
 const useHash = () => {
@@ -38,15 +25,18 @@ const useHash = () => {
 
 export function App() {
   const [theme, setTheme] = useState<Theme>("system");
-  const fixtures = useHash() === "#/fixtures";
+  const hash = useHash();
+  const fixtures = Fixtures !== null && hash === "#/fixtures";
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{fixtures ? "Chart fixtures" : "Charts"}</h1>
         <div className="flex items-center gap-4 text-sm">
-          <a className="underline" href={fixtures ? "#/" : "#/fixtures"}>
-            {fixtures ? "Live charts" : "Fixtures"}
-          </a>
+          {Fixtures && (
+            <a className="underline" href={fixtures ? "#/" : "#/fixtures"}>
+              {fixtures ? "Live charts" : "Fixtures"}
+            </a>
+          )}
           <label>
             Theme{" "}
             <select
@@ -65,7 +55,13 @@ export function App() {
           </label>
         </div>
       </header>
-      {fixtures ? <Fixtures /> : <Explorer />}
+      {fixtures && Fixtures ? (
+        <Suspense fallback={null}>
+          <Fixtures />
+        </Suspense>
+      ) : (
+        <Explorer />
+      )}
     </main>
   );
 }

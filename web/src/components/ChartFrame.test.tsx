@@ -2,8 +2,8 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { afterEach, beforeEach } from "vitest";
-import { emptySpec, swatchSpec, unknownTemplateSpec } from "../fixtures/specs";
-import { SwatchRenderer } from "../fixtures/SwatchRenderer";
+import { emptySpec, swatchSpec, unknownTemplateSpec } from "../dev/specs";
+import { SwatchRenderer } from "../dev/SwatchRenderer";
 import { clearRenderers, registerRenderer } from "../renderers/registry";
 import { ChartFrame } from "./ChartFrame";
 
