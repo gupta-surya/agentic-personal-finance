@@ -25,6 +25,13 @@ export const ENTRIES: Entry[] = [
   { key: "cash_flow", label: "Cash flow", templateId: "cash_flow" },
   { key: "spend_over_time", label: "Spending over time", templateId: "spend_over_time" },
   { key: "spend_breakdown", label: "Spending breakdown", templateId: "spend_breakdown" },
+  {
+    key: "category_trends",
+    label: "Category trends",
+    templateId: "category_trends",
+    fixed: true,
+    params: { months: 6 },
+  },
   { key: "kpi_spend", label: "Total spending", templateId: "kpi", params: { measure: "spend" } },
   { key: "kpi_income", label: "Total income", templateId: "kpi", params: { measure: "income" } },
   { key: "kpi_net", label: "Net cash flow", templateId: "kpi", params: { measure: "net" } },
