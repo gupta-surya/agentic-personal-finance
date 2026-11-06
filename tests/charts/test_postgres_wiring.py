@@ -11,7 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from finance_agent import serve_charts
-from finance_agent.charts.api import create_app
+from finance_agent.charts.api import CatalogUnavailable, create_app
 from finance_agent.charts.fake_catalog import FakeSeriesCatalog
 from finance_agent.charts.postgres import check_database_url, postgres_session
 from finance_agent.charts.templates import default_registry
@@ -137,10 +137,38 @@ def test_a_test_database_is_refused_by_name_without_echoing_the_url(name: str) -
     assert "S3CRET" not in str(err.value) and name in str(err.value)
 
 
+def test_the_test_database_guard_ignores_case() -> None:
+    with pytest.raises(ValueError, match="non-test database"):
+        check_database_url("postgresql://finance:pw@127.0.0.1:5432/Finance_TEST")
+
+
 def test_a_dev_database_and_a_url_without_a_name() -> None:
     check_database_url("postgresql://finance:pw@127.0.0.1:5432/finance_dev")  # accepted
     with pytest.raises(ValueError):
-        check_database_url("postgresql://finance:pw@127.0.0.1:5432")
+        check_database_url("postgresql://finance:pw@127.0.0.1:5432")  # no PGDATABASE fallback
+
+
+def test_a_malformed_url_is_refused_without_echoing_any_of_it() -> None:
+    with pytest.raises(ValueError, match="not a valid connection URL") as err:
+        check_database_url("host=127.0.0.1 password=S3CRET-pw this-is-not-conninfo")
+    assert "S3CRET" not in str(err.value)
+
+
+def test_a_connection_failure_is_unavailable_but_a_failing_query_stays_a_loud_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def dropped(*_args: object, **_kwargs: object) -> None:
+        raise psycopg.InterfaceError("the connection is closed: password=S3CRET-pw")
+
+    with monkeypatch.context() as patch:
+        patch.setattr("finance_agent.charts.postgres.psycopg.connect", dropped)
+        with pytest.raises(CatalogUnavailable) as err, postgres_session("unused", TENANT):
+            pass
+    assert "S3CRET" not in str(err.value) and err.value.__cause__ is None
+
+    # a query bug is not "unavailable": it must surface, not be dressed up as an outage
+    with pytest.raises(psycopg.ProgrammingError), postgres_session(database_url(), TENANT):
+        raise psycopg.ProgrammingError("a bug in a query")
 
 
 @pytest.fixture
