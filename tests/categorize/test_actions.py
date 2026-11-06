@@ -10,7 +10,7 @@ from finance_agent.categorize.actions import correct_category, delete_rule, set_
 from finance_agent.categorize.rules import categorize, lock_categorization
 from finance_agent.categorize.starter_rules import seed_starter_rules
 from finance_agent.db.loader import Connection
-from tests.categorize_helpers import TENANT, Txn, add_rule, keys, load, state
+from tests.categorize.helpers import TENANT, Txn, add_rule, keys, load, state
 from tests.helpers import database_url, ingest_file
 
 

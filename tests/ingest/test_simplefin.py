@@ -8,8 +8,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from finance_agent.clients.simplefin import FixtureSimpleFinClient, LiveSimpleFinClient
 from finance_agent.ingest.contract import NormalizedBatch, NormalizedTransaction, PullError
+from finance_agent.ingest.simplefin.client import FixtureSimpleFinClient, LiveSimpleFinClient
 from finance_agent.ingest.simplefin.common import local_date
 from finance_agent.ingest.simplefin.detect import detect_dialect
 from finance_agent.ingest.simplefin.normalize import normalize_simplefin
@@ -353,8 +353,8 @@ def test_live_client_is_still_a_stub() -> None:
 
 def test_no_network_libraries_in_the_ingest_package() -> None:
     forbidden = ("requests", "httpx", "urllib", "socket", "aiohttp")
-    root = Path(__file__).resolve().parent.parent / "src" / "finance_agent"
-    for path in [*root.glob("ingest/**/*.py"), root / "clients" / "simplefin.py"]:
+    root = Path(__file__).resolve().parents[2] / "src" / "finance_agent"
+    for path in root.glob("ingest/**/*.py"):
         source = path.read_text(encoding="utf-8")
         for name in forbidden:
             assert f"import {name}" not in source, f"{path.name} imports {name}"

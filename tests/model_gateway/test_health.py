@@ -10,8 +10,8 @@ from finance_agent.categorize.starter_rules import seed_starter_rules
 from finance_agent.model_gateway import ModelConfig, ModelUnavailable, check, model_status_signal
 from finance_agent.model_gateway.health import server_version
 from finance_agent.model_gateway.transport import Response
-from tests.categorize_helpers import TENANT, Txn, load, state
-from tests.model_gateway_helpers import LOCAL, FakeTransport
+from tests.categorize.helpers import TENANT, Txn, load, state
+from tests.model_gateway.helpers import LOCAL, FakeTransport
 
 OFFLINE = "Model offline: new merchants stay uncategorized until it is back."
 NOT_INSTALLED = "Model not installed: new merchants stay uncategorized until it is."
@@ -92,9 +92,9 @@ def test_with_the_model_down_ingest_and_categorization_still_complete_via_rules(
 
 
 def test_nothing_in_the_data_pipeline_imports_the_gateway() -> None:
-    src = Path(__file__).resolve().parents[1] / "src" / "finance_agent"
+    src = Path(__file__).resolve().parents[2] / "src" / "finance_agent"
     offenders = []
-    for pkg in ("ingest", "categorize", "reconcile", "queries", "db", "clients"):
+    for pkg in ("ingest", "categorize", "reconcile", "queries", "db"):
         for path in (src / pkg).rglob("*.py"):
             for node in ast.walk(ast.parse(path.read_text())):
                 names = (

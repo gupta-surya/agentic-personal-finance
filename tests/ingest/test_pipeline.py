@@ -487,7 +487,7 @@ def test_bronze_and_silver_loaders_import_nothing_source_specific() -> None:
     import ast
     from pathlib import Path
 
-    root = Path(__file__).resolve().parent.parent / "src" / "finance_agent" / "ingest"
+    root = Path(__file__).resolve().parents[2] / "src" / "finance_agent" / "ingest"
     for name in ("bronze.py", "silver_loader.py", "contract.py"):
         tree = ast.parse((root / name).read_text(encoding="utf-8"))
         modules = [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
