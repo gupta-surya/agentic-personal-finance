@@ -12,13 +12,14 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from finance_agent.charts.period import Period, range_label, resolve_period
+from finance_agent.charts.period import Period, range_label
 from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
     category_label,
     format_money,
     format_share,
+    resolve,
     source_of,
     span_label,
 )
@@ -60,7 +61,7 @@ def _signed(text: str, positive: bool) -> str:
 
 
 def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
-    period = resolve_period(params.period, today)
+    period = resolve(params.period, today, catalog)
     # The previous period is the same length immediately before this one.
     previous_start = period.start - (period.end - period.start)
     previous_label = range_label(previous_start, period.start)

@@ -17,7 +17,9 @@ describe("ChartFrame", () => {
     expect(screen.getByRole("heading", { name: swatchSpec.title })).toBeInTheDocument();
     expect(screen.getByText(swatchSpec.period!.label)).toBeInTheDocument();
     expect(screen.getByText("Currency")).toBeInTheDocument();
-    expect(screen.getByText(/cash_flow · res_7f3b · data dv_12/)).toBeInTheDocument();
+    expect(
+      screen.getByText("cash_flow · res_7f3b · data dv_12 · as of 2026-04-02 12:00 UTC"),
+    ).toBeInTheDocument();
   });
 
   it("carries the result ids for hover provenance", () => {

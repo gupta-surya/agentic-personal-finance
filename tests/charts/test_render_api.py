@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from finance_agent.charts.api import create_app
-from finance_agent.charts.fake_catalog import FakeSeriesCatalog
+from finance_agent.charts.fake_catalog import fake_session
 from finance_agent.charts.period import Period, PeriodPreset, resolve_period
 from finance_agent.charts.registry import TemplateRegistry
 from finance_agent.charts.spec import enforce_point_budget
@@ -16,7 +16,7 @@ TODAY = date(2026, 10, 25)
 
 
 def make_client(reg: TemplateRegistry | None = None) -> TestClient:
-    app = create_app(reg or registry(), FakeSeriesCatalog, lambda: TODAY)
+    app = create_app(reg or registry(), fake_session, lambda: TODAY)
     return TestClient(app)
 
 

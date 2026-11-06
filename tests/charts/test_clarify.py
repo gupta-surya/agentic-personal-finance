@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from finance_agent.charts.api import create_app
-from finance_agent.charts.fake_catalog import FakeSeriesCatalog
+from finance_agent.charts.fake_catalog import FakeSeriesCatalog, fake_session
 from finance_agent.charts.registry import TemplateParamsError
 from finance_agent.charts.spec import ChartSpec
 from finance_agent.charts.templates import default_registry
@@ -164,7 +164,7 @@ def test_error_messages_never_echo_the_untrusted_label() -> None:
 
 
 def test_served_over_http_and_a_bad_option_is_a_422_not_a_500() -> None:
-    client = TestClient(create_app(default_registry(), FakeSeriesCatalog, lambda: TODAY))
+    client = TestClient(create_app(default_registry(), fake_session, lambda: TODAY))
 
     ok = client.post(
         "/charts/render",

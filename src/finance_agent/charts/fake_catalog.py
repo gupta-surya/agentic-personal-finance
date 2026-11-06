@@ -12,6 +12,7 @@ All data is synthetic; none of it is real financial data.
 """
 
 from collections import defaultdict
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -80,6 +81,11 @@ def synthetic_transactions() -> list[SyntheticTransaction]:
 
 def _month(day: date) -> date:
     return day.replace(day=1)
+
+
+def fake_session() -> AbstractContextManager["FakeSeriesCatalog"]:
+    """One request's catalog over the synthetic data (nothing to release)."""
+    return nullcontext(FakeSeriesCatalog())
 
 
 class FakeSeriesCatalog:
