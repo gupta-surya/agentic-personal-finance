@@ -84,6 +84,22 @@ def _add_months(first_of_month: date, months: int) -> date:
     return date(index // 12, index % 12 + 1, 1)
 
 
+def last_n_months(today: date, n: int) -> ResolvedPeriod:
+    """The ``n`` complete months before ``today``'s month. Presets only cover 1, 3, 6 and 12."""
+    this_month = today.replace(day=1)
+    return _resolved(PeriodPreset.CUSTOM, _add_months(this_month, -n), this_month)
+
+
+def months_of(period: ResolvedPeriod) -> list[date]:
+    """The first day of every calendar month the period touches, oldest first."""
+    months: list[date] = []
+    month = period.start.replace(day=1)
+    while month < period.end:
+        months.append(month)
+        month = _add_months(month, 1)
+    return months
+
+
 def _fmt(day: date) -> str:
     return f"{_MONTHS[day.month - 1]} {day.day}, {day.year}"
 

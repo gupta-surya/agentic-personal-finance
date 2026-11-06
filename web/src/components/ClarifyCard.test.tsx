@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { vi } from "vitest";
 import type { ChartSpec } from "../api/types";
-import { swatchSpec } from "../fixtures/specs";
+import { swatchSpec } from "../dev/specs";
 import { ChartFrame } from "./ChartFrame";
 
 const spec: ChartSpec = {

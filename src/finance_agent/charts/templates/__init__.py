@@ -3,6 +3,7 @@
 from finance_agent.charts.registry import TemplateRegistry
 from finance_agent.charts.templates import (
     cash_flow,
+    category_trends,
     clarify,
     kpi,
     spend_breakdown,
@@ -12,7 +13,7 @@ from finance_agent.charts.templates import (
 
 def default_registry() -> TemplateRegistry:
     registry = TemplateRegistry()
-    for module in (cash_flow, spend_over_time, spend_breakdown, kpi):
+    for module in (cash_flow, spend_over_time, spend_breakdown, kpi, category_trends):
         registry.register(module.TEMPLATE)
     # Registered last: it validates its options against everything registered before it.
     registry.register(clarify.make_template(registry))
