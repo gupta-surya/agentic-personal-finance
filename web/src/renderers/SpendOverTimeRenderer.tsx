@@ -51,7 +51,7 @@ export const SpendOverTimeRenderer: Renderer = ({ spec }) => {
   const currency = specCurrency(spec);
   const byMonth = new Map(pivotSeries(spec.series).map((r) => [r.x, r]));
   // A continuous month axis: a month with no spend is a gap, not a missing tick.
-  const data = monthRange(spec.period.start, spec.period.end).map((x) => {
+  const data = (spec.period ? monthRange(spec.period.start, spec.period.end) : []).map((x) => {
     const row = byMonth.get(x) ?? { x, values: {}, strings: {} };
     return { ...row, ...row.values };
   });

@@ -15,7 +15,7 @@ describe("ChartFrame", () => {
     render(<ChartFrame state={{ status: "ready", spec: swatchSpec }} />);
 
     expect(screen.getByRole("heading", { name: swatchSpec.title })).toBeInTheDocument();
-    expect(screen.getByText(swatchSpec.period.label)).toBeInTheDocument();
+    expect(screen.getByText(swatchSpec.period!.label)).toBeInTheDocument();
     expect(screen.getByText("Currency")).toBeInTheDocument();
     expect(screen.getByText(/cash_flow · res_7f3b · data dv_12/)).toBeInTheDocument();
   });

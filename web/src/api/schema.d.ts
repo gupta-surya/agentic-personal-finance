@@ -71,11 +71,12 @@ export interface components {
              * @default []
              */
             assumptions: components["schemas"]["Assumption"][];
+            clarify?: components["schemas"]["Clarify"] | null;
             /** Params */
             params: {
                 [key: string]: components["schemas"]["JsonValue"];
             };
-            period: components["schemas"]["ResolvedPeriod"];
+            period: components["schemas"]["ResolvedPeriod"] | null;
             /** Series */
             series: components["schemas"]["Series"][];
             /** Sources */
@@ -85,6 +86,30 @@ export interface components {
             template_id: string;
             /** Title */
             title: string;
+        };
+        /**
+         * Clarify
+         * @description A question with 2 to 4 options, for when the planner cannot choose confidently.
+         */
+        Clarify: {
+            /** Options */
+            options: components["schemas"]["ClarifyOption"][];
+            /** Question */
+            question: string;
+        };
+        /**
+         * ClarifyOption
+         * @description A ready request: choosing it sends ``{template_id, params}`` to the render route.
+         */
+        ClarifyOption: {
+            /** Label */
+            label: string;
+            /** Params */
+            params: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+            /** Template Id */
+            template_id: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

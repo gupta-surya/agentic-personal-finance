@@ -88,9 +88,13 @@ def _fmt(day: date) -> str:
     return f"{_MONTHS[day.month - 1]} {day.day}, {day.year}"
 
 
+def range_label(start: date, end: date) -> str:
+    """``"Sep 1, 2026 – Sep 30, 2026"`` for ``[start, end)`` (``end`` exclusive)."""
+    return f"{_fmt(start)} – {_fmt(end - timedelta(days=1))}"
+
+
 def _resolved(preset: PeriodPreset, start: date, end: date) -> ResolvedPeriod:
-    label = f"{_fmt(start)} – {_fmt(end - timedelta(days=1))}"
-    return ResolvedPeriod(preset=preset, start=start, end=end, label=label)
+    return ResolvedPeriod(preset=preset, start=start, end=end, label=range_label(start, end))
 
 
 def resolve_period(

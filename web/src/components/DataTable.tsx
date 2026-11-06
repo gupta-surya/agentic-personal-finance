@@ -4,7 +4,7 @@ import type { ChartSpec } from "../api/types";
 export function DataTable({ spec, id }: { spec: ChartSpec; id: string }) {
   return (
     <table id={id} className="w-full border-collapse text-sm">
-      <caption className="sr-only">{`${spec.title}: ${spec.period.label}`}</caption>
+      <caption className="sr-only">{`${spec.title}${spec.period ? `: ${spec.period.label}` : ""}`}</caption>
       <thead>
         <tr>
           {spec.table.columns.map((column) => (
