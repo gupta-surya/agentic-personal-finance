@@ -9,7 +9,7 @@ from finance_agent.categorize.rules import FUZZY_THRESHOLD, categorize
 from finance_agent.categorize.starter_rules import STARTER_RULES, seed_starter_rules
 from finance_agent.db.default_categories import DEFAULT_CATEGORIES
 from finance_agent.db.loader import Connection
-from tests.categorize_helpers import TENANT, Txn, add_rule, load, state, versions
+from tests.categorize.helpers import TENANT, Txn, add_rule, load, state, versions
 
 # Realistic statement variants for every brand (at least two each). Each must normalize to
 # the brand's key exactly.

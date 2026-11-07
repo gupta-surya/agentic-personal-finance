@@ -8,7 +8,7 @@ from finance_agent.db.default_categories import DEFAULT_CATEGORIES
 from finance_agent.evals import model_benchmark as bench
 from finance_agent.model_gateway import ModelGateway
 from finance_agent.model_gateway.transport import Response
-from tests.model_gateway_helpers import LOCAL, FakeTransport, ok
+from tests.model_gateway.helpers import LOCAL, FakeTransport, ok
 
 NAMES = [n for _, n in DEFAULT_CATEGORIES]
 

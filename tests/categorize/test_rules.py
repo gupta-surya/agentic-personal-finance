@@ -8,7 +8,7 @@ import pytest
 from finance_agent.categorize.rules import FUZZY_THRESHOLD, categorize
 from finance_agent.db.default_categories import seed_default_categories
 from finance_agent.db.loader import Connection
-from tests.categorize_helpers import TENANT, Txn, add_rule, keys, load, state, versions
+from tests.categorize.helpers import TENANT, Txn, add_rule, keys, load, state, versions
 from tests.helpers import ingest_file
 
 
@@ -273,7 +273,7 @@ def test_the_categorize_package_imports_no_model_or_network_code() -> None:
         "anthropic",
         "gateway",
     )
-    root = Path(__file__).resolve().parent.parent / "src" / "finance_agent" / "categorize"
+    root = Path(__file__).resolve().parents[2] / "src" / "finance_agent" / "categorize"
     for path in root.glob("*.py"):
         source = path.read_text(encoding="utf-8")
         for name in forbidden:
