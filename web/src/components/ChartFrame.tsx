@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import type { ChartSpec } from "../api/types";
+import { formatAsOf } from "../lib/time";
 import { getRenderer } from "../renderers/registry";
 import { ClarifyCard, type Choose } from "./ClarifyCard";
 import { DataTable } from "./DataTable";
@@ -114,7 +115,7 @@ export function ChartFrame({ state, onChoose }: { state: ChartState; onChoose?: 
         <ul className="mt-1 list-disc pl-5">
           {spec.sources.map((source) => (
             <li key={source.result_id}>
-              {`${source.query} · ${source.result_id} · data ${source.data_version}`}
+              {`${source.query} · ${source.result_id} · data ${source.data_version} · as of ${formatAsOf(source.as_of)}`}
             </li>
           ))}
         </ul>

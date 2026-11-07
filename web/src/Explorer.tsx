@@ -65,6 +65,7 @@ export const PERIODS = [
   ["last_12_months", "Last 12 months"],
   ["year_to_date", "Year to date"],
   ["last_year", "Last year"],
+  ["all_time", "All time"],
 ] as const;
 
 const select = "rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-sm";
