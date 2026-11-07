@@ -11,13 +11,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from finance_agent.charts.period import Period, resolve_period
+from finance_agent.charts.period import Period
 from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
     category_label,
     format_money,
     month_label,
+    resolve,
     source_of,
     span_label,
 )
@@ -56,7 +57,7 @@ def _sort_key(key: tuple[str, str | None]) -> tuple[int, str]:
 
 
 def build(params: SpendOverTimeParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
-    period = resolve_period(params.period, today)
+    period = resolve(params.period, today, catalog)
     chosen = set(params.categories)
     result = catalog.monthly_spend_by_category(
         period.start,

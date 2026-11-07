@@ -2,8 +2,8 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { afterEach, beforeEach } from "vitest";
-import { emptySpec, swatchSpec, unknownTemplateSpec } from "../fixtures/specs";
-import { SwatchRenderer } from "../fixtures/SwatchRenderer";
+import { emptySpec, swatchSpec, unknownTemplateSpec } from "../dev/specs";
+import { SwatchRenderer } from "../dev/SwatchRenderer";
 import { clearRenderers, registerRenderer } from "../renderers/registry";
 import { ChartFrame } from "./ChartFrame";
 
@@ -17,7 +17,9 @@ describe("ChartFrame", () => {
     expect(screen.getByRole("heading", { name: swatchSpec.title })).toBeInTheDocument();
     expect(screen.getByText(swatchSpec.period!.label)).toBeInTheDocument();
     expect(screen.getByText("Currency")).toBeInTheDocument();
-    expect(screen.getByText(/cash_flow · res_7f3b · data dv_12/)).toBeInTheDocument();
+    expect(
+      screen.getByText("cash_flow · res_7f3b · data dv_12 · as of 2026-04-02 12:00 UTC"),
+    ).toBeInTheDocument();
   });
 
   it("carries the result ids for hover provenance", () => {

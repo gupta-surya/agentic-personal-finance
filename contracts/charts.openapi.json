@@ -539,6 +539,28 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/charts/meta": {
+      "get": {
+        "operationId": "meta_charts_meta_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Meta Charts Meta Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Meta"
+      }
+    },
     "/charts/render": {
       "post": {
         "operationId": "render_chart_charts_render_post",
