@@ -57,6 +57,22 @@ def span_label(first: date, last: date) -> str:
     return f"{month_label(first)} – {month_label(last)}"
 
 
+def format_change(change: Decimal | None) -> str:
+    """A signed percentage (``+12.34%``, ``−4%``, ``0%``), or ``n/a`` when there was
+    nothing to compare against."""
+    if change is None:
+        return "n/a"
+    return ("+" if change > 0 else "") + format_share(change)
+
+
+def series_id(category: str | None, is_other: bool = False) -> str:
+    """Stable series id for a category row: ``category:rent``, ``uncategorized`` or
+    ``everything_else`` (the folded top-N bucket)."""
+    if is_other:
+        return "everything_else"
+    return "uncategorized" if category is None else f"category:{category}"
+
+
 def source_of(result: QueryResult[Any]) -> Source:
     return Source(
         result_id=result.result_id,

@@ -18,6 +18,7 @@ from finance_agent.charts.templates.common import (
     category_label,
     format_money,
     month_label,
+    series_id,
     source_of,
     span_label,
 )
@@ -40,10 +41,7 @@ def _key(row: MonthlyCategorySpendRow) -> tuple[str, str | None]:
 
 
 def _series_id(key: tuple[str, str | None]) -> str:
-    kind, name = key
-    if kind == "other":
-        return "everything_else"
-    return "uncategorized" if name is None else f"category:{name}"
+    return series_id(key[1], is_other=key[0] == "other")
 
 
 def _sort_key(key: tuple[str, str | None]) -> tuple[int, str]:
