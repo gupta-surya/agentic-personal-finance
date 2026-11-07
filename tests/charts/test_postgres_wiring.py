@@ -31,6 +31,7 @@ REQUESTS: list[tuple[str, dict[str, Any]]] = [
     ("spend_breakdown", {"period": FULL}),
     ("kpi", {"period": FULL, "measure": "net"}),
     ("kpi", {"period": FULL, "measure": "spend", "category": "groceries"}),
+    ("category_trends", {"months": 6}),
 ]
 
 
