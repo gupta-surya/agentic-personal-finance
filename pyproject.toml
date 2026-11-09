@@ -20,6 +20,7 @@ dependencies = [
 dev = ["ruff", "mypy", "pytest", "httpx"]
 
 [project.scripts]
+finance = "finance_agent.cli.app:main"
 finance-benchmark = "finance_agent.evals.model_benchmark:main"
 
 [build-system]
