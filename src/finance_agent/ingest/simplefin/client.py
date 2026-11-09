@@ -71,9 +71,9 @@ class LiveSimpleFinClient:
     """Fetch one ``GET /accounts`` from the user's SimpleFIN access URL.
 
     The access URL embeds credentials; it is held only for the length of the fetch,
-    passed in by the caller (from the OS keychain, see ``finance_agent.secrets``), and
-    never stored or logged. Only the safe query parameters reach the returned ``RawPull``
-    and, through it, bronze.
+    passed in by the caller (from the encrypted credentials store, see
+    ``finance_agent.credentials``), and never stored or logged. Only the safe query
+    parameters reach the returned ``RawPull`` and, through it, bronze.
     """
 
     def __init__(

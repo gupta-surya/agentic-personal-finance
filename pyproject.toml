@@ -13,7 +13,7 @@ dependencies = [
     "typer>=0.15",
     "rich>=13",
     "questionary>=2.0",
-    "keyring>=25",
+    "cryptography>=43",
 ]
 
 [project.optional-dependencies]
