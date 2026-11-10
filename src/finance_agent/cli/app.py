@@ -19,6 +19,7 @@ _YES = typer.Option(False, "--yes", help="Accept defaults; do not prompt.")
 _FORCE = typer.Option(False, "--force", help="Pull again even if a recent sync exists.")
 _LIST_ONLY = typer.Option(False, "--yes", help="List only; do not prompt.")
 _SYNTHETIC = typer.Option(False, "--synthetic", help="Serve synthetic sample data.")
+_AGENT = typer.Option(False, "--agent", help="Also serve /ask (needs Ollama).")
 _HOST = typer.Option("127.0.0.1", "--host", help="Bind host.")
 _PORT = typer.Option(8000, "--port", help="Bind port.")
 
@@ -50,9 +51,13 @@ def review(yes: bool = _LIST_ONLY) -> None:
 
 
 @app.command()
-def serve(synthetic: bool = _SYNTHETIC, host: str = _HOST, port: int = _PORT) -> None:
+def serve(
+    synthetic: bool = _SYNTHETIC, agent: bool = _AGENT, host: str = _HOST, port: int = _PORT
+) -> None:
     """Run the local charts API (your data, or --synthetic). Pair with `cd web && npm run dev`."""
-    raise typer.Exit(run_serve(default_context(), host=host, port=port, synthetic=synthetic))
+    raise typer.Exit(
+        run_serve(default_context(), host=host, port=port, synthetic=synthetic, agent=agent)
+    )
 
 
 def main() -> None:
