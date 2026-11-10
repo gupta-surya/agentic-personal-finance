@@ -31,6 +31,6 @@ describe("data source label", () => {
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/charts/meta"));
     expect(screen.queryByTestId("data-source")).toBeNull();
-    expect(screen.getByRole("heading", { name: "Charts" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ask" })).toBeInTheDocument();
   });
 });

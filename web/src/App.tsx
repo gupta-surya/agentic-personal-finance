@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { Ask } from "./Ask";
 import { type DataSource, fetchSource } from "./api/client";
 import { Explorer } from "./Explorer";
 
@@ -8,6 +9,9 @@ import { Explorer } from "./Explorer";
 const Fixtures = import.meta.env.DEV ? lazy(() => import("./dev/Fixtures")) : null;
 
 type Theme = "system" | "light" | "dark";
+type View = "ask" | "charts" | "fixtures";
+
+const TITLES: Record<View, string> = { ask: "Ask", charts: "Charts", fixtures: "Chart fixtures" };
 
 function applyTheme(theme: Theme) {
   if (theme === "system") document.documentElement.removeAttribute("data-theme");
@@ -31,22 +35,27 @@ export function App() {
     fetchSource().then(setSource, () => setSource(null)); // unknown: show no label
   }, []);
   const hash = useHash();
-  const fixtures = Fixtures !== null && hash === "#/fixtures";
+  const view: View =
+    hash === "#/charts" ? "charts" : Fixtures !== null && hash === "#/fixtures" ? "fixtures" : "ask";
+
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">
       <header className="flex items-center justify-between">
         <div className="flex items-baseline gap-3">
-          <h1 className="text-xl font-semibold">{fixtures ? "Chart fixtures" : "Charts"}</h1>
+          <h1 className="text-xl font-semibold">{TITLES[view]}</h1>
           {source && (
             <span className="text-sm text-[var(--text-muted)]" data-testid="data-source">
               {source === "postgres" ? "Your data" : "Synthetic data"}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-4 text-sm">
+        <nav className="flex items-center gap-4 text-sm">
+          <a className="underline" href={view === "ask" ? "#/charts" : "#/"}>
+            {view === "ask" ? "Charts" : "Ask"}
+          </a>
           {Fixtures && (
-            <a className="underline" href={fixtures ? "#/" : "#/fixtures"}>
-              {fixtures ? "Live charts" : "Fixtures"}
+            <a className="underline" href="#/fixtures">
+              Fixtures
             </a>
           )}
           <label>
@@ -65,14 +74,16 @@ export function App() {
               <option value="dark">Dark</option>
             </select>
           </label>
-        </div>
+        </nav>
       </header>
-      {fixtures && Fixtures ? (
+      {view === "fixtures" && Fixtures ? (
         <Suspense fallback={null}>
           <Fixtures />
         </Suspense>
-      ) : (
+      ) : view === "charts" ? (
         <Explorer />
+      ) : (
+        <Ask />
       )}
     </main>
   );

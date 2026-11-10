@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     // Dev only: the render API runs locally (uvicorn finance_agent.serve_charts:app).
-    proxy: { "/charts": "http://127.0.0.1:8000" },
+    proxy: { "/charts": "http://127.0.0.1:8000", "/ask": "http://127.0.0.1:8000" },
   },
   test: {
     environment: "jsdom",

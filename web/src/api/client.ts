@@ -1,5 +1,24 @@
 import type { ChartSpec } from "./types";
 
+export interface AskResponse {
+  prose: string;
+  grounded: boolean;
+  unmatched: string[];
+  chart_spec: ChartSpec | null;
+}
+
+/** POST /ask on the same origin (Vite proxies it to the local API in dev). */
+export async function askAgent(question: string, signal?: AbortSignal): Promise<AskResponse> {
+  const response = await fetch("/ask", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ question }),
+    signal,
+  });
+  if (!response.ok) throw new Error(await describeFailure(response));
+  return (await response.json()) as AskResponse;
+}
+
 export type DataSource = "synthetic" | "postgres";
 
 /** Which data the API is serving, so the page can say so. */
