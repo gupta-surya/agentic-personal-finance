@@ -32,7 +32,10 @@ conn = psycopg.connect(sys.argv[2])
 apply_schema(conn)
 conn.commit()
 PYEOF
-  docker compose exec -T db pg_dump -U finance --schema-only --no-owner --no-privileges "$2"
+  # Strip pg_dump's volatile lines: the random \restrict/\unrestrict nonces (new in
+  # pg16+, different every run) and the version banner.
+  docker compose exec -T db pg_dump -U finance --schema-only --no-owner --no-privileges "$2" \
+    | grep -vE '^(\\(un)?restrict |-- Dumped )'
 }
 
 WT="$(mktemp -d)"
