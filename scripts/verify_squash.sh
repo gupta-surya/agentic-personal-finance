@@ -7,6 +7,8 @@
 #
 #   scripts/verify_squash.sh [BEFORE_REF]   # BEFORE_REF defaults to the commit before HEAD
 set -euo pipefail
+exec </dev/null   # never read the terminal's input buffer (so a pasted
+                  # follow-up command can't be swallowed by docker compose exec)
 
 BEFORE="${1:-HEAD~1}"
 ROOT="$(git rev-parse --show-toplevel)"
