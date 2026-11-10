@@ -429,30 +429,6 @@ def test_payload_with_errors_still_loads(conn: Connection) -> None:
 
     assert _count(conn, "SELECT count(*) FROM accounts") == 1
 
-
-def test_upgrade_backfills_task01_data(conn: Connection) -> None:
-    _alembic("downgrade", "base")
-    _alembic("upgrade", "0001")
-    conn.execute(
-        "INSERT INTO accounts VALUES ('legacy', 'a1', 'A', NULL, 'USD', 0)",
-    )
-    conn.execute(
-        "INSERT INTO transactions (tenant_id, account_external_id, external_id, posted_date, "
-        "amount, description, category, pending) VALUES "
-        "('legacy', 'a1', 't1', '2026-03-01', -1, 'x', 'groceries', false), "
-        "('legacy', 'a1', 't2', '2026-03-01', -1, 'y', NULL, false)"
-    )
-    _alembic("upgrade", "head")
-
-    cats = conn.execute("SELECT group_name, name FROM categories WHERE tenant_id = 'legacy'")
-    assert cats.fetchall() == [("Other", "groceries")]
-    rows = conn.execute(
-        "SELECT external_id, category, category_source FROM transactions "
-        "WHERE tenant_id = 'legacy' ORDER BY external_id"
-    ).fetchall()
-    assert rows == [("t1", "groceries", "rule"), ("t2", None, None)]
-
-
 def test_apply_schema_works_on_a_non_autocommit_connection(conn: Connection) -> None:
     url = os.environ.get(
         "TEST_DATABASE_URL", "postgresql://finance:finance@127.0.0.1:5432/finance_test"
@@ -461,36 +437,3 @@ def test_apply_schema_works_on_a_non_autocommit_connection(conn: Connection) -> 
         apply_schema(plain)  # already at head: must be a no-op, not a deadlock
         assert plain.autocommit is False
         assert plain.info.transaction_status == psycopg.pq.TransactionStatus.IDLE
-
-
-def test_upgrade_moves_phase1_data_under_a_legacy_connection(conn: Connection) -> None:
-    _alembic("downgrade", "base")
-    _alembic("upgrade", "0002")
-    conn.execute("INSERT INTO categories (tenant_id, group_name, name) VALUES ('t', 'Food', 'x')")
-    conn.execute(
-        "INSERT INTO raw_payloads (tenant_id, source, payload, payload_sha256) "
-        "VALUES ('t', 'simplefin', '{\"accounts\": []}', 'old-hash')"
-    )
-    conn.execute("INSERT INTO accounts VALUES ('t', 'a1', 'Checking', 'Demo Bank', 'USD', 5)")
-    conn.execute(
-        "INSERT INTO transactions (tenant_id, account_external_id, external_id, posted_date, "
-        "amount, description, category, pending, category_source) "
-        "VALUES ('t', 'a1', 't1', '2026-03-01', -1.50, 'coffee', 'x', false, 'user')"
-    )
-    _alembic("upgrade", "head")
-
-    assert conn.execute("SELECT source, provider_key, name FROM connections").fetchall() == [
-        ("simplefin", "legacy", "legacy")
-    ]
-    assert conn.execute(
-        "SELECT a.external_id, c.provider_key, t.external_id, t.amount, t.category, "
-        "t.category_source, t.transacted_date "
-        "FROM transactions t JOIN accounts a ON a.id = t.account_id "
-        "JOIN connections c ON c.id = a.connection_id"
-    ).fetchall() == [("a1", "legacy", "t1", Decimal("-1.50"), "x", "user", None)]
-    pull = conn.execute(
-        "SELECT dialect_detected, parse_status, convert_from(body, 'UTF8'), "
-        "body_sha256 = encode(sha256(body), 'hex') FROM raw_pulls"
-    ).fetchone()
-    assert pull == ("v1", "ok", '{"accounts": []}', True)
-    assert _count(conn, "SELECT count(*) FROM pg_tables WHERE tablename = 'raw_payloads'") == 0

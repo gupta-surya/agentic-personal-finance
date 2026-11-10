@@ -19,8 +19,7 @@ from finance_agent.ingest.simplefin.errors import (
     DestinationNotAllowed,
     ResponseTooLarge,
 )
-from finance_agent.model_gateway.config import authority_of
-from finance_agent.model_gateway.errors import ConfigError
+from finance_agent.netloc import NetlocError, authority_of
 
 MAX_RESPONSE_BYTES = 32 * 1024 * 1024
 DEFAULT_TIMEOUT_SECONDS = 60.0
@@ -91,7 +90,7 @@ def guarded_post(
 def _require_authority(authority: str, url: str) -> None:
     try:
         target = authority_of(url)
-    except ConfigError:
+    except NetlocError:
         raise DestinationNotAllowed("refused a request to an unexpected destination") from None
     if target != authority:
         raise DestinationNotAllowed("refused a request to an unexpected host")

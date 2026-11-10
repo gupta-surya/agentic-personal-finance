@@ -34,8 +34,7 @@ from finance_agent.ingest.simplefin.transport import (
     guarded_get,
     guarded_post,
 )
-from finance_agent.model_gateway.config import authority_of
-from finance_agent.model_gateway.errors import ConfigError
+from finance_agent.netloc import NetlocError, authority_of
 
 
 class SimpleFinClient(Protocol):
@@ -134,7 +133,7 @@ def claim_access_url(
     claim_url = _decode_setup_token(setup_token)
     try:
         authority = authority_of(claim_url)
-    except ConfigError:
+    except NetlocError:
         raise MalformedSetupToken("the setup token's claim URL is not valid") from None
     resp = guarded_post(transport, authority, claim_url, b"", timeout)
     _check_claim_status(resp.status)
@@ -175,7 +174,7 @@ def _split_access_url(access_url: str) -> tuple[str, Auth | None, str]:
     base = urlunsplit((parts.scheme, netloc, parts.path, "", ""))
     try:
         authority = authority_of(base)
-    except ConfigError:
+    except NetlocError:
         raise AccessRevoked("your saved bank connection is invalid; reconnect it") from None
     return base, auth, authority
 

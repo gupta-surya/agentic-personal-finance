@@ -209,5 +209,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute("DROP SCHEMA public CASCADE")
-    op.execute("CREATE SCHEMA public")
+    # Drop the app tables (not the schema), so alembic's own alembic_version survives.
+    op.execute(
+        "DROP TABLE IF EXISTS pull_errors, transactions, merchant_rules, accounts, "
+        "credentials, raw_pulls, transfer_groups, categories, connections CASCADE"
+    )
+    op.execute("DROP EXTENSION IF EXISTS pg_trgm")

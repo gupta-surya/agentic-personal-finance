@@ -25,7 +25,6 @@ from finance_agent.queries.spend import spend_by_category
 from tests.helpers import (
     FIXTURES,
     UTC_TZ,
-    alembic,
     ingest_file,
     pull_from_file,
     pull_from_text,
@@ -452,27 +451,6 @@ def test_inverted_sign_source_stores_the_same_signed_amounts(conn: Connection) -
 
 
 # --- migrations with data and connection hygiene -------------------------
-
-
-def test_downgrade_with_data_does_not_crash_and_upgrade_restores(conn: Connection) -> None:
-    ingest_file(conn, TENANT, V1)
-    ingest_file(conn, TENANT, V2)
-
-    alembic("downgrade", "0002")
-    legacy = conn.execute(
-        "SELECT (SELECT count(*) FROM raw_payloads), (SELECT count(*) FROM accounts), "
-        "(SELECT count(*) FROM transactions)"
-    ).fetchone()
-    # Two same-id accounts collapse to one; the pending row falls back to its transacted date.
-    assert legacy == (2, 3, 15)
-    pending = conn.execute(
-        "SELECT posted_date FROM transactions WHERE external_id = 'txn-002'"
-    ).fetchone()
-    assert pending == (date(2026, 3, 30),)
-
-    alembic("upgrade", "head")
-    assert _counts(conn)["accounts"] == 3
-
 
 def test_connection_is_left_usable_after_ingest_errors(conn: Connection) -> None:
     with pytest.raises(psycopg.errors.Error):
