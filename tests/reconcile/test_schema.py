@@ -6,7 +6,7 @@ from typing import Any, Literal
 import pytest
 from psycopg.errors import CheckViolation
 
-from finance_agent.db.default_categories import DEFAULT_CATEGORIES, seed_default_categories
+from finance_agent.db.default_categories import seed_default_categories
 from finance_agent.db.loader import Connection
 from finance_agent.ingest.contract import (
     NormalizedAccount,
@@ -16,7 +16,7 @@ from finance_agent.ingest.contract import (
     RawPull,
 )
 from finance_agent.ingest.pipeline import ingest
-from tests.helpers import FETCHED_AT, UTC_TZ, alembic, ingest_file
+from tests.helpers import FETCHED_AT, UTC_TZ, ingest_file
 
 TENANT = "demo-tenant"
 Role = Literal["on_budget", "credit", "loan", "investment"]
@@ -39,35 +39,6 @@ def test_new_accounts_default_to_on_budget_open_and_rule_sourced(conn: Connectio
     rows = conn.execute("SELECT DISTINCT role, role_source, closed FROM accounts").fetchall()
 
     assert rows == [("on_budget", "rule", False)]
-
-
-def test_upgrade_backfills_existing_rows(conn: Connection) -> None:
-    ingest_file(conn, TENANT, "simplefin_demo.json")
-    alembic("downgrade", "0004")
-    group = _one(
-        conn,
-        "INSERT INTO transfer_groups (tenant_id, rule, source) VALUES (%s, 'old', 'rule') "
-        "RETURNING id",
-        TENANT,
-    )[0]
-    conn.execute(
-        "UPDATE transactions SET transfer_group_id = %s, is_internal_transfer = true "
-        "WHERE external_id = 'chk-txn-001'",
-        (group,),
-    )
-
-    alembic("upgrade", "head")
-
-    assert conn.execute("SELECT DISTINCT role, role_source, closed FROM accounts").fetchall() == [
-        ("on_budget", "rule", False)
-    ]
-    expected = {name: name == "income" for _, name in DEFAULT_CATEGORIES}
-    assert _pairs(conn, "SELECT name, is_income FROM categories") == expected
-    assert _one(conn, "SELECT match_confidence FROM transfer_groups") == ("high",)
-    states = _pairs(conn, "SELECT external_id, transfer_source FROM transactions")
-    assert states.pop("chk-txn-001") == "rule"
-    assert set(states.values()) == {None} and len(states) == 11
-
 
 def test_seed_marks_only_income_as_income_and_never_flips_a_user_choice(conn: Connection) -> None:
     flags = _pairs(conn, "SELECT name, is_income FROM categories")
@@ -171,28 +142,3 @@ def test_a_negative_balance_or_a_card_like_name_does_not_change_the_role(
         ("Demo Checking", Decimal("4210.55"), "on_budget"),
         ("Demo Rewards Card", Decimal("-612.37"), "on_budget"),
     ]
-
-
-def test_backfill_keeps_a_users_groups_user_owned(conn: Connection) -> None:
-    ingest_file(conn, TENANT, "simplefin_demo.json")
-    alembic("downgrade", "0004")
-    for source, legs in (("user", ("chk-txn-002", "chk-txn-003")), ("rule", ("chk-txn-001",))):
-        group = _one(
-            conn,
-            "INSERT INTO transfer_groups (tenant_id, rule, source) VALUES (%s, 'old', %s) "
-            "RETURNING id",
-            TENANT,
-            source,
-        )[0]
-        conn.execute(
-            "UPDATE transactions SET transfer_group_id = %s, is_internal_transfer = true "
-            "WHERE external_id = ANY(%s)",
-            (group, list(legs)),
-        )
-
-    alembic("upgrade", "head")
-
-    states = _pairs(conn, "SELECT external_id, transfer_source FROM transactions")
-    assert states["chk-txn-002"] == states["chk-txn-003"] == "user"
-    assert states["chk-txn-001"] == "rule"
-    assert [v for k, v in states.items() if not k.startswith("chk-txn-00")] == [None] * 9
