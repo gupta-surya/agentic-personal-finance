@@ -7,6 +7,7 @@ import typer
 from finance_agent.cli.context import default_context
 from finance_agent.cli.prompts import QuestionaryPrompter
 from finance_agent.cli.review import run_review
+from finance_agent.cli.serve import run_serve
 from finance_agent.cli.setup import run_setup
 from finance_agent.cli.status import run_status
 from finance_agent.cli.sync import run_sync_command
@@ -17,6 +18,9 @@ _TOKEN_FILE = typer.Option(None, "--token-file", help="Read the setup token from
 _YES = typer.Option(False, "--yes", help="Accept defaults; do not prompt.")
 _FORCE = typer.Option(False, "--force", help="Pull again even if a recent sync exists.")
 _LIST_ONLY = typer.Option(False, "--yes", help="List only; do not prompt.")
+_SYNTHETIC = typer.Option(False, "--synthetic", help="Serve synthetic sample data.")
+_HOST = typer.Option("127.0.0.1", "--host", help="Bind host.")
+_PORT = typer.Option(8000, "--port", help="Bind port.")
 
 
 @app.command()
@@ -43,6 +47,12 @@ def status() -> None:
 def review(yes: bool = _LIST_ONLY) -> None:
     """Review and categorize transactions rules did not cover."""
     raise typer.Exit(run_review(default_context(), QuestionaryPrompter(), non_interactive=yes))
+
+
+@app.command()
+def serve(synthetic: bool = _SYNTHETIC, host: str = _HOST, port: int = _PORT) -> None:
+    """Run the local charts API (your data, or --synthetic). Pair with `cd web && npm run dev`."""
+    raise typer.Exit(run_serve(default_context(), host=host, port=port, synthetic=synthetic))
 
 
 def main() -> None:
