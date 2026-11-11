@@ -77,8 +77,8 @@ def _matches(value: Decimal, is_percent: bool, truth: set[Decimal]) -> bool:
     return False
 
 
-def verify(prose: str, spec: ChartSpec) -> VerifyReport:
-    truth = ground_truth(spec)
+def verify(prose: str, spec: ChartSpec | None) -> VerifyReport:
+    truth = ground_truth(spec) if spec is not None else set()
     checked: list[str] = []
     unmatched: list[str] = []
     for token in _TOKEN.findall(prose):

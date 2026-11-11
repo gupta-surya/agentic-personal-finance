@@ -1,11 +1,15 @@
-"""Tool selection: a question -> params for exactly one chart template.
+"""Triage + tool selection: decide whether a message is a finance-data question, and if so
+which chart answers it.
 
-The output schema is a discriminated union of the real template param models, so whatever the
-model returns is already valid params for one template (or generation fails). The gateway runs
-this as an AGENT_TURN job, which is raw-class and therefore local-only.
+The model returns one of two shapes (a discriminated union):
+- ``Chart``: params for exactly one chart template (valid params by construction).
+- ``Reply``: a short conversational reply, for greetings, thanks, or anything not answerable
+  from the user's financial data. A reply may state no figure — the verifier blocks any.
+
+Run as the raw-class AGENT_TURN job (local-only).
 """
 
-from typing import Annotated, Protocol
+from typing import Annotated, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -24,28 +28,47 @@ PlanParams = Annotated[
 ]
 
 
-class Plan(BaseModel):
+class Chart(BaseModel):
+    kind: Literal["chart"]
     params: PlanParams
+
+
+class Reply(BaseModel):
+    kind: Literal["reply"]
+    text: str = Field(max_length=400)
+
+
+PlanResult = Annotated[Chart | Reply, Field(discriminator="kind")]
+
+
+class Plan(BaseModel):
+    result: PlanResult
 
 
 class Planner(Protocol):
     def plan(self, question: str) -> Plan: ...
 
 
-SYSTEM = """You pick ONE chart to answer a question about the user's own finances.
+SYSTEM = """You answer questions about the user's own finances, or reply conversationally.
 
-Templates and when to use each:
-- kpi: one number for a period. measure = spend | income | net. "how much did I spend/earn",
-  "what was my net". For spend you may set category to narrow to one category.
-- cash_flow: income vs spending and the running net over months. "cash flow", "am I saving".
-- spend_breakdown: spending split by category (or merchant) for a period. "where did my money
-  go", "biggest categories". group_by = category | merchant; top_n up to 12.
-- spend_over_time: monthly spending over a period, optionally for chosen categories. "trend".
+First decide what the message is:
+- A question about their finances (spending, income, categories, cash flow, trends, "how much
+  did I...", "where did my money go", "am I saving") -> return kind "chart".
+- A greeting, thanks, small talk, or anything NOT answerable from their financial data ("hi",
+  "thanks", "who are you", "what's the weather") -> return kind "reply" with a short, friendly
+  text. In a reply you have no data, so state NO dollar amount or percentage and give no
+  financial advice; if useful, say what you can help with.
+
+For kind "chart", pick ONE template and fill its params:
+- kpi: one number for a period. measure = spend | income | net. For spend you may set category.
+- cash_flow: income vs spending and running net over months. "cash flow", "am I saving".
+- spend_breakdown: spending split by category (or merchant) for a period. "where did my money go".
+- spend_over_time: monthly spending over a period, optionally chosen categories. "trend".
 - category_trends: monthly spend per category over N months (3-12). "which categories rose".
 
-period.preset is one of: this_month, last_month, last_3_months, last_6_months, last_12_months,
-year_to_date, last_year, all_time. Use last_month if the question gives no period. Never set
-start/end unless preset is custom. Return params for exactly one template."""
+period.preset: this_month, last_month, last_3_months, last_6_months, last_12_months,
+year_to_date, last_year, all_time. Use last_month if no period is given. Never set start/end
+unless preset is custom."""
 
 
 class GatewayPlanner:

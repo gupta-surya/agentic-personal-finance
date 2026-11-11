@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from finance_agent.agent.api import create_agent_app
 from finance_agent.agent.ask import answer
 from finance_agent.agent.narrate import Narrator
+from finance_agent.agent.plan import Plan, Reply
 from finance_agent.agent.stub import StubNarrator, StubPlanner
 from finance_agent.charts.fake_catalog import fake_session
 from finance_agent.charts.spec import ChartSpec
@@ -50,6 +51,24 @@ def test_ungrounded_narration_is_blocked_and_falls_back_to_title() -> None:
     assert result.prose == f"{result.spec.title}."  # grounded fallback
 
 
+def test_greeting_gets_a_conversational_reply_not_a_chart() -> None:
+    result = answer("Hi there!", StubPlanner(), StubNarrator(), REG, fake_session, _today)
+    assert result.spec is None
+    assert result.grounded is True
+    assert "spending" in result.prose.lower()
+
+
+class _FigureReplyPlanner(StubPlanner):
+    def plan(self, question: str) -> Plan:
+        return Plan(result=Reply(kind="reply", text="You have $5,000.00 saved."))
+
+
+def test_a_conversational_reply_cannot_state_a_figure() -> None:
+    result = answer("hello", _FigureReplyPlanner(), StubNarrator(), REG, fake_session, _today)
+    assert result.spec is None
+    assert "$5,000.00" not in result.prose  # blocked, redirected to a safe message
+
+
 class _DownPlanner(StubPlanner):
     def plan(self, question: str) -> object:  # type: ignore[override]
         raise ModelUnavailable("model endpoint is down")
@@ -85,3 +104,11 @@ def test_ask_endpoint_returns_prose_and_chart() -> None:
     assert body["engine"] == "stub-x"
     # The same app still serves the charts routes.
     assert client.get("/charts/meta").json() == {"source": "synthetic"}
+
+
+def test_ask_endpoint_greeting_has_no_chart() -> None:
+    app = create_agent_app(REG, fake_session, _today, StubPlanner(), StubNarrator())
+    client = TestClient(app)
+    body = client.post("/ask", json={"question": "hi"}).json()
+    assert body["chart_spec"] is None
+    assert body["prose"]

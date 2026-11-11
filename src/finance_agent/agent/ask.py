@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from finance_agent.agent.narrate import Narrator
-from finance_agent.agent.plan import Planner
+from finance_agent.agent.plan import Chart, Planner, Reply
 from finance_agent.agent.verify import verify
 from finance_agent.charts.period import PeriodError
 from finance_agent.charts.registry import (
@@ -27,6 +27,9 @@ from finance_agent.queries.series import SeriesCatalog
 Session = Callable[[], AbstractContextManager[SeriesCatalog]]
 
 _MODEL_DOWN = "The local model isn't reachable. Start it with `ollama serve` and pull the model."
+_REDIRECT = (
+    "I can help with your spending, income, categories and cash flow — ask me about one of those."
+)
 
 
 @dataclass(frozen=True)
@@ -52,7 +55,14 @@ def answer(
     except ModelGatewayError:
         return Answer(_MODEL_DOWN, None, True, [], engine)
 
-    params = plan.params
+    result = plan.result
+    if isinstance(result, Reply):
+        report = verify(result.text, None)
+        text = result.text if report.ok else _REDIRECT
+        return Answer(text, None, True, [], engine)
+
+    assert isinstance(result, Chart)
+    params = result.params
     try:
         with session() as catalog:
             spec = registry.render(

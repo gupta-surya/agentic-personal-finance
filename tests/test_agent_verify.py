@@ -58,3 +58,8 @@ def test_ground_truth_includes_series_values() -> None:
     from decimal import Decimal
 
     assert Decimal("1500.00") in ground_truth(spec)  # Rent amount
+
+
+def test_conversational_text_is_grounded_only_without_figures() -> None:
+    assert verify("Hi! Ask me about your spending or cash flow.", None).ok is True
+    assert verify("You have $5,000 saved.", None).ok is False
