@@ -87,6 +87,11 @@ export function Ask() {
       {state.status === "ready" && (
         <section className="space-y-3" data-testid="ask-answer">
           <p className="text-base">{state.answer.prose}</p>
+          {state.answer.engine && (
+            <p className="text-xs text-[var(--text-muted)]" data-testid="engine">
+              answered by {state.answer.engine}
+            </p>
+          )}
           {!state.answer.grounded && (
             <p className="text-xs text-[var(--text-muted)]" data-testid="grounding-note">
               Showing the verified summary; an unverified figure was withheld.

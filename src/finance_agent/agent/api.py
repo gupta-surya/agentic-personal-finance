@@ -30,16 +30,20 @@ def create_agent_app(
     planner: Planner,
     narrator: Narrator,
     source: Literal["synthetic", "postgres"] = "synthetic",
+    engine: str = "stub",
 ) -> FastAPI:
     app = create_app(registry, session, today, source=source)
 
     @app.post("/ask")
     def ask(request: AskRequest) -> dict[str, object]:
-        result: Answer = answer(request.question, planner, narrator, registry, session, today)
+        result: Answer = answer(
+            request.question, planner, narrator, registry, session, today, engine
+        )
         return {
             "prose": result.prose,
             "grounded": result.grounded,
             "unmatched": result.unmatched,
+            "engine": result.engine,
             "chart_spec": result.spec.model_dump(mode="json") if result.spec else None,
         }
 

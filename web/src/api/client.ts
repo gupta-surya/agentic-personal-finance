@@ -5,6 +5,7 @@ export interface AskResponse {
   grounded: boolean;
   unmatched: string[];
   chart_spec: ChartSpec | null;
+  engine?: string;
 }
 
 /** POST /ask on the same origin (Vite proxies it to the local API in dev). */

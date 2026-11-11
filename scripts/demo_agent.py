@@ -15,7 +15,12 @@ from finance_agent.charts.templates import default_registry
 
 def build_app() -> FastAPI:
     return create_agent_app(
-        default_registry(), fake_session, lambda: date(2026, 10, 25), StubPlanner(), StubNarrator()
+        default_registry(),
+        fake_session,
+        lambda: date(2026, 10, 25),
+        StubPlanner(),
+        StubNarrator(),
+        engine="stub (keyword matcher, no model)",
     )
 
 
@@ -24,4 +29,7 @@ app = build_app()
 if __name__ == "__main__":
     import uvicorn
 
+    print(
+        "Demo agent: STUB engine (no Ollama). For the real local model use `finance serve --agent`."
+    )
     uvicorn.run(app, host="127.0.0.1", port=8000)

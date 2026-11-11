@@ -64,9 +64,16 @@ def build_server_app(ctx: AppContext, *, synthetic: bool, agent: bool = False) -
     from finance_agent.model_gateway.client import ModelGateway
     from finance_agent.model_gateway.config import ModelConfig
 
-    gateway = ModelGateway(ModelConfig.from_env())
+    config = ModelConfig.from_env()
+    gateway = ModelGateway(config)
     return create_agent_app(
-        registry, session, today, GatewayPlanner(gateway), GatewayNarrator(gateway), source=source
+        registry,
+        session,
+        today,
+        GatewayPlanner(gateway),
+        GatewayNarrator(gateway),
+        source=source,
+        engine=config.model,
     )
 
 

@@ -2,7 +2,8 @@
 
 A fetch of the catalog and the clock are injected (as in the charts API). Any ungrounded
 narration is blocked and replaced by the chart's deterministic, grounded title, so no
-untraceable number can ever reach the user.
+untraceable number can ever reach the user. ``engine`` names what answered (the local model,
+or the stub), so the UI can show it and nobody wonders whether the model ran.
 """
 
 from collections.abc import Callable
@@ -20,9 +21,12 @@ from finance_agent.charts.registry import (
     UnknownTemplateError,
 )
 from finance_agent.charts.spec import ChartSpec
+from finance_agent.model_gateway.errors import ModelGatewayError
 from finance_agent.queries.series import SeriesCatalog
 
 Session = Callable[[], AbstractContextManager[SeriesCatalog]]
+
+_MODEL_DOWN = "The local model isn't reachable. Start it with `ollama serve` and pull the model."
 
 
 @dataclass(frozen=True)
@@ -31,6 +35,7 @@ class Answer:
     spec: ChartSpec | None
     grounded: bool
     unmatched: list[str]
+    engine: str
 
 
 def answer(
@@ -40,8 +45,13 @@ def answer(
     registry: TemplateRegistry,
     session: Session,
     today: Callable[[], date],
+    engine: str = "stub",
 ) -> Answer:
-    plan = planner.plan(question)
+    try:
+        plan = planner.plan(question)
+    except ModelGatewayError:
+        return Answer(_MODEL_DOWN, None, True, [], engine)
+
     params = plan.params
     try:
         with session() as catalog:
@@ -49,11 +59,18 @@ def answer(
                 params.template, params.model_dump(mode="json"), catalog, today()
             )
     except (UnknownTemplateError, TemplateParamsError, PeriodError, ValueError):
-        return Answer("I couldn't find a way to answer that from your data.", None, True, [])
+        return Answer(
+            "I couldn't find a way to answer that from your data.", None, True, [], engine
+        )
 
-    prose = narrator.narrate(question, spec)
+    try:
+        prose = narrator.narrate(question, spec)
+    except ModelGatewayError:
+        # The chart is computed; fall back to its grounded title rather than failing.
+        return Answer(f"{spec.title}.", spec, True, [], engine)
+
     report = verify(prose, spec)
     if report.ok:
-        return Answer(prose, spec, True, [])
+        return Answer(prose, spec, True, [], engine)
     # Ungrounded: block it, fall back to the deterministic title (grounded by construction).
-    return Answer(f"{spec.title}.", spec, False, report.unmatched)
+    return Answer(f"{spec.title}.", spec, False, report.unmatched, engine)
