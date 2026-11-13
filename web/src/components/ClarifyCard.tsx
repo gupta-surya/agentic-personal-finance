@@ -5,26 +5,24 @@ export type Choose = (templateId: string, params: Record<string, unknown>) => vo
 
 /** A question with options. Each option is a ready request for the render route, so
  *  choosing one never involves a model. */
-export function ClarifyCard({ spec, onChoose }: { spec: ChartSpec; onChoose?: Choose }) {
+export function ClarifyCard({ spec, onChoose, className = "" }: { spec: ChartSpec; onChoose?: Choose; className?: string }) {
   const headingId = useId();
   const clarify = spec.clarify;
   if (!clarify) return null;
   return (
-    <section
-      aria-labelledby={headingId}
-      className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4"
-    >
-      <h2 id={headingId} className="text-base font-semibold">
+    <section aria-labelledby={headingId} className={`card ${className}`}>
+      <h2 id={headingId} className="title" style={{ fontSize: 18 }}>
         {clarify.question}
       </h2>
-      <ul className="m-0 mt-3 flex list-none flex-wrap gap-2 p-0">
+      <ul style={{ display: "flex", flexWrap: "wrap", gap: 8, listStyle: "none", margin: "14px 0 0", padding: 0 }}>
         {clarify.options.map((option) => (
           <li key={option.label}>
             <button
               type="button"
               disabled={!onChoose}
               onClick={() => onChoose?.(option.template_id, option.params)}
-              className="rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-1.5 text-sm hover:border-[var(--focus)] disabled:opacity-60"
+              className="btn"
+              style={{ minHeight: 40, padding: "0 16px", color: "var(--ink)" }}
             >
               {option.label}
             </button>

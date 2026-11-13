@@ -33,29 +33,33 @@ const show = (s: ChartSpec) => render(<ChartFrame state={{ status: "ready", spec
 
 describe("CategoryTrendsRenderer", () => {
   it("shows each category's figures and trend as written text, never color alone", () => {
-    show(spec);
-
-    const dining = screen.getAllByRole("row").find((r) => within(r).queryByText("Dining"))!;
-    for (const text of ["$125.00", "$100.00", "$150.00", "+50%", "▲ Rising"]) {
-      expect(within(dining).getByText(text)).toBeInTheDocument();
-    }
-    expect(screen.getAllByText("– Flat").length).toBeGreaterThan(0);
+    const { container } = show(spec);
+    const dining = container.querySelector<HTMLElement>("li[data-category='Dining']")!;
+    expect(dining).toHaveTextContent("Avg $125.00 / month");
+    expect(within(dining).getByText("▲ Rising")).toBeInTheDocument();
+    expect(within(dining).getByText("+50%")).toBeInTheDocument();
+    expect(container.querySelector("li[data-category='Rent']")).toHaveTextContent("– Flat");
+    // The exact low and high months stay in the table.
+    const table = screen.getByRole("table");
+    for (const text of ["$100.00", "$150.00"]) expect(within(table).getByText(text)).toBeInTheDocument();
   });
 
   it("draws one decorative sparkline per category, hidden from assistive tech", () => {
     const { container } = show(spec);
-    const lines = container.querySelectorAll("svg[aria-hidden='true'] polyline");
+    const sparks = container.querySelectorAll("li.mini svg");
 
-    expect(lines).toHaveLength(2);
-    expect(container.querySelectorAll("svg[aria-hidden='true']")).toHaveLength(2);
+    expect(sparks).toHaveLength(2);
+    for (const svg of sparks) expect(svg).toHaveAttribute("aria-hidden", "true");
   });
 
   it("draws a flat series mid-height without dividing by zero", () => {
     const { container } = show(spec);
-    const flat = container.querySelectorAll("polyline")[1]!; // Rent: all 1500.00
-    const ys = flat.getAttribute("points")!.split(" ").map((p) => Number(p.split(",")[1]));
+    const flat = container.querySelector("li[data-category='Rent'] svg path")!; // all 1500.00
+    const d = flat.getAttribute("d")!;
+    const ys = [...d.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map((m) => Number(m[2]));
 
-    expect(ys.every((y) => Number.isFinite(y))).toBe(true);
+    expect(d).not.toMatch(/NaN|Infinity/);
+    expect(ys.length).toBeGreaterThan(1);
     expect(new Set(ys).size).toBe(1);
   });
 

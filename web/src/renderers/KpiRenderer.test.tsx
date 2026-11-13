@@ -43,8 +43,9 @@ describe("KpiRenderer", () => {
     const delta = screen.getByTestId("kpi-delta");
     expect(delta).toHaveTextContent("▲");
     expect(delta).toHaveTextContent("up:");
-    expect(delta).toHaveTextContent("+$86.30 (+4.43%) vs Jan 29, 2026 – Feb 28, 2026");
-    expect(screen.getByText("Previous period: $1,947.05")).toBeInTheDocument();
+    expect(delta).toHaveTextContent("+$86.30+4.43%");
+    expect(delta).toHaveTextContent("more than the previous period");
+    expect(delta).toHaveTextContent("Jan 29, 2026 – Feb 28, 2026: $1,947.05");
   });
 
   it("shows a fall with a minus sign and a down glyph", () => {
@@ -53,13 +54,14 @@ describe("KpiRenderer", () => {
     const delta = screen.getByTestId("kpi-delta");
     expect(delta).toHaveTextContent("▼");
     expect(delta).toHaveTextContent("down:");
-    expect(delta).toHaveTextContent("−$86.30 (−6.89%)");
+    expect(delta).toHaveTextContent("−$86.30−6.89%");
+    expect(delta).toHaveTextContent("less than the previous period");
   });
 
   it("says n/a, never infinity, when there is no previous value to compare to", () => {
     show(kpi({ current: "40.00", previous: "0.00", change: "40.00" }));
 
-    expect(screen.getByTestId("kpi-delta")).toHaveTextContent("+$40.00 (n/a)");
+    expect(screen.getByTestId("kpi-delta")).toHaveTextContent("+$40.00n/a");
     expect(screen.getByTestId("kpi-delta").textContent).not.toMatch(/infinity|nan/i);
   });
 
@@ -68,7 +70,8 @@ describe("KpiRenderer", () => {
 
     const delta = screen.getByTestId("kpi-delta");
     expect(delta).toHaveTextContent("unchanged:");
-    expect(delta).toHaveTextContent("$0.00 (0%)");
+    expect(delta).toHaveTextContent("$0.000%");
+    expect(delta).toHaveTextContent("the same as the previous period");
     expect(delta.textContent).not.toMatch(/[▲▼]/);
   });
 
@@ -76,7 +79,47 @@ describe("KpiRenderer", () => {
     show(kpi({ current: "-300.00", previous: "100.00", change: "-400.00", percent: "-4.0000", currency: "EUR" }));
 
     expect(screen.getByTestId("kpi-value")).toHaveTextContent("−€300.00");
-    expect(screen.getByTestId("kpi-delta")).toHaveTextContent("−€400.00 (−400%)");
+    expect(screen.getByTestId("kpi-delta")).toHaveTextContent("−€400.00−400%");
+  });
+
+  it("says why there is no change when history starts inside the previous period", () => {
+    const spec: ChartSpec = {
+      ...kpi({ current: "26705.17", previous: "0", change: "0" }),
+      series: [point("current", "Year", "Oct 1, 2025 – Sep 30, 2026", "26705.17")],
+      assumptions: [
+        { key: "measure", label: "Measure", value: "Spending", source: "question" },
+        {
+          key: "compared_with",
+          label: "Compared with",
+          value: "Not enough history: your data starts Sep 1, 2025",
+          source: "default",
+        },
+      ],
+    };
+    show(spec);
+
+    expect(screen.getByTestId("kpi-value")).toHaveTextContent("$26,705.17");
+    expect(screen.queryByTestId("kpi-delta")).toBeNull();
+    expect(screen.getByTestId("kpi-no-comparison")).toHaveTextContent(
+      "Not enough history: your data starts Sep 1, 2025",
+    );
+    expect(screen.getByTestId("kpi-value").closest("figure")!.textContent).not.toMatch(/[▲▼]|%/);
+  });
+
+  it("titles the tile by what it measures and keeps the finding for screen readers", () => {
+    const spec: ChartSpec = {
+      ...kpi({ current: "94.50", previous: "65.50", change: "29.00", percent: "0.4427" }),
+      title: "You spent $94.50 on Dining, Mar 2026",
+      assumptions: [
+        { key: "measure", label: "Measure", value: "Spending", source: "question" },
+        { key: "category", label: "Category", value: "Dining", source: "question" },
+      ],
+    };
+    show(spec);
+
+    expect(screen.getByRole("heading", { name: "Dining spending: You spent $94.50 on Dining, Mar 2026" })).toBeInTheDocument();
+    // The amount is shown once, in the tile, not repeated in a visible title.
+    expect(screen.getAllByText("You spent $94.50 on Dining, Mar 2026", { exact: false })[0]).toHaveClass("sr-only");
   });
 
   it("keeps the exact table", () => {

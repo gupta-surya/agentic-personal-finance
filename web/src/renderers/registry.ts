@@ -3,7 +3,12 @@ import type { ChartSpec } from "../api/types";
 
 /** Draws one template. It receives a finished ChartSpec and never fetches or computes
  *  money: it copies, orders and formats values that are already in the spec. */
-export type Renderer = (props: { spec: ChartSpec }) => ReactNode;
+export interface Renderer {
+  (props: { spec: ChartSpec }): ReactNode;
+  /** A short visible heading for compact tiles, used instead of the finding sentence
+   *  (which stays in the accessible name). */
+  heading?: (spec: ChartSpec) => string;
+}
 
 const renderers = new Map<string, Renderer>();
 

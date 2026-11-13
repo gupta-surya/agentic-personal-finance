@@ -44,11 +44,6 @@ export function monthRange(startIso: string, endIso: string): string[] {
   return months;
 }
 
-/** Entry animations are off for people who ask the OS for reduced motion. */
-export function animationsOn(): boolean {
-  return !(typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
-}
-
 /** The spec's currency (the builder echoes it in params); USD if absent. */
 export function specCurrency(spec: ChartSpec): string {
   const currency = spec.params.currency;

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 import { App } from "./App";
 
@@ -31,6 +31,29 @@ describe("data source label", () => {
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/charts/meta"));
     expect(screen.queryByTestId("data-source")).toBeNull();
-    expect(screen.getByRole("heading", { name: "Charts" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Overview" })).toBeInTheDocument();
+  });
+});
+
+describe("navigation", () => {
+  it("moves between pages by hash and marks the current one", async () => {
+    stubApi(() => new Response(JSON.stringify({ source: "synthetic" })));
+    render(<App />);
+    expect(screen.getByRole("heading", { level: 1, name: "Overview" })).toBeInTheDocument();
+
+    window.location.hash = "#/spending";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    expect(await screen.findByRole("heading", { level: 1, name: "Spending" })).toBeInTheDocument();
+    const main = screen.getByRole("navigation", { name: "Main" });
+    expect(within(main).getByRole("link", { name: "Spending" })).toHaveAttribute("aria-current", "page");
+    window.location.hash = "";
+  });
+
+  it("offers the period as a radio group and currency as a select", () => {
+    stubApi(() => new Response(JSON.stringify({ source: "synthetic" })));
+    render(<App />);
+    expect(screen.getByRole("radiogroup", { name: "Period" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Last 6 months" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("combobox", { name: "Currency" })).toHaveValue("USD");
   });
 });

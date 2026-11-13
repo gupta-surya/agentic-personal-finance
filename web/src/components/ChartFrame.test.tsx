@@ -1,7 +1,7 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
-import { afterEach, beforeEach } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 import { emptySpec, swatchSpec, unknownTemplateSpec } from "../dev/specs";
 import { SwatchRenderer } from "../dev/SwatchRenderer";
 import { clearRenderers, registerRenderer } from "../renderers/registry";
@@ -34,19 +34,19 @@ describe("ChartFrame", () => {
     expect(within(table).getByText("-210.75")).toBeInTheDocument();
     expect(table.parentElement).toHaveClass("sr-only");
 
-    const toggle = screen.getByRole("button", { name: "Show data table" });
+    const toggle = screen.getByRole("button", { name: "Table" });
     expect(toggle).toHaveAttribute("aria-pressed", "false");
     await userEvent.click(toggle);
-    expect(screen.getByRole("button", { name: "Hide data table" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Hide table" })).toHaveAttribute("aria-pressed", "true");
     expect(table.parentElement).not.toHaveClass("sr-only");
   });
 
   it("is operable from the keyboard", async () => {
     render(<ChartFrame state={{ status: "ready", spec: swatchSpec }} />);
     await userEvent.tab();
-    expect(screen.getByRole("button", { name: "Show data table" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Table" })).toHaveFocus();
     await userEvent.keyboard("{Enter}");
-    expect(screen.getByRole("button", { name: "Hide data table" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Hide table" })).toBeInTheDocument();
   });
 
   it("degrades safely for a template with no renderer: data as a table, no markup injection", () => {
@@ -54,7 +54,7 @@ describe("ChartFrame", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("no chart for “<img src=x onerror=alert(1)>” yet");
     expect(container.querySelector("img")).toBeNull();
-    expect(screen.queryByRole("button", { name: /data table/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /table/i })).toBeNull();
     expect(screen.getByRole("table")).toBeInTheDocument();
   });
 
@@ -66,8 +66,11 @@ describe("ChartFrame", () => {
     expect(screen.getByRole("status")).toHaveTextContent("No data for this period.");
     expect(screen.queryByRole("table")).toBeNull();
 
-    rerender(<ChartFrame state={{ status: "error", message: "HTTP 422" }} />);
+    const retry = vi.fn();
+    rerender(<ChartFrame state={{ status: "error", message: "HTTP 422" }} onRetry={retry} />);
     expect(screen.getByRole("alert")).toHaveTextContent("HTTP 422");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(retry).toHaveBeenCalledOnce();
   });
 
   it("marks negative money with a glyph and text, not color alone", () => {

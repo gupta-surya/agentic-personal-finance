@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach } from "vitest";
 import type { ChartSpec } from "../api/types";
 import { ChartFrame } from "../components/ChartFrame";
@@ -34,10 +34,13 @@ describe("CashFlowRenderer", () => {
     const { container } = render(<ChartFrame state={{ status: "ready", spec }} />);
 
     expect(screen.getByRole("group", { name: `${spec.title} chart` })).toBeInTheDocument();
-    expect(container.querySelector(".recharts-wrapper")).not.toBeNull();
-    for (const name of ["Inflow", "Outflow", "Net", "Running net"]) {
+    expect(container.querySelector("svg[role='img']")).not.toBeNull();
+    expect(container.querySelectorAll("path[data-series='inflow']")).toHaveLength(2);
+    expect(container.querySelectorAll("path[data-series='outflow']")).toHaveLength(2);
+    for (const name of ["Inflow", "Outflow", "Net"]) {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0);
     }
+    expect(screen.getByText("Running net through Mar 2026")).toBeInTheDocument();
   });
 
   it("marks an overspent month with the amount written out, not color alone", () => {
@@ -55,6 +58,19 @@ describe("CashFlowRenderer", () => {
     expect(labels).toContain("−€210.75");
     expect(labels.filter((t) => t.includes("$"))).toEqual([]);
     expect(labels.some((t) => t.includes("€"))).toBe(true);
+  });
+
+  it("reads a month from the keyboard: arrows move, the stats follow", async () => {
+    const { container } = render(<ChartFrame state={{ status: "ready", spec }} />);
+    const chart = container.querySelector<SVGElement>("svg[role='img']")!;
+    const month = () => container.querySelector("p[aria-live]")!.textContent;
+    // The latest month is shown first.
+    expect(month()).toBe("Mar 2026");
+    chart.focus();
+    fireEvent.keyDown(chart, { key: "ArrowLeft" });
+    expect(month()).toBe("Feb 2026");
+    fireEvent.keyDown(chart, { key: "End" });
+    expect(month()).toBe("Mar 2026");
   });
 
   it("keeps the exact running net in the data table", () => {
