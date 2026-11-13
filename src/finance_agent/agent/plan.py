@@ -54,10 +54,11 @@ SYSTEM = """You answer questions about the user's own finances, or reply convers
 First decide what the message is:
 - A question about their finances (spending, income, categories, cash flow, trends, "how much
   did I...", "where did my money go", "am I saving") -> return kind "chart".
-- A greeting, thanks, small talk, or anything NOT answerable from their financial data ("hi",
-  "thanks", "who are you", "what's the weather") -> return kind "reply" with a short, friendly
+- A greeting, thanks, small talk, anything NOT about their financial data ("hi", "thanks",
+  "who are you", "what's the weather"), OR a finance question none of the templates below can
+  show (e.g. net worth, one specific merchant) -> return kind "reply" with a short, friendly
   text. In a reply you have no data, so state NO dollar amount or percentage and give no
-  financial advice; if useful, say what you can help with.
+  financial advice; say what you can help with instead.
 
 For kind "chart", pick ONE template and fill its params:
 - kpi: one number for a period. measure = spend | income | net. For spend you may set category.

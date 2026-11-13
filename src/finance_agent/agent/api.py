@@ -1,7 +1,7 @@
 """The agent app: the charts routes plus ``POST /ask``.
 
-The web app talks to one origin for both /charts/* and /ask. The planner and narrator are
-injected, so a demo or test can run the whole loop with stubs and no model.
+The web app talks to one origin for both /charts/* and /ask. The planner is injected, so a
+test or demo runs the whole loop with a fake planner and no model.
 """
 
 from collections.abc import Callable
@@ -12,7 +12,6 @@ from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict, Field
 
 from finance_agent.agent.ask import Answer, Session, answer
-from finance_agent.agent.narrate import Narrator
 from finance_agent.agent.plan import Planner
 from finance_agent.charts.api import create_app
 from finance_agent.charts.registry import TemplateRegistry
@@ -28,22 +27,17 @@ def create_agent_app(
     session: Session,
     today: Callable[[], date],
     planner: Planner,
-    narrator: Narrator,
     source: Literal["synthetic", "postgres"] = "synthetic",
-    engine: str = "stub",
 ) -> FastAPI:
     app = create_app(registry, session, today, source=source)
 
     @app.post("/ask")
     def ask(request: AskRequest) -> dict[str, object]:
-        result: Answer = answer(
-            request.question, planner, narrator, registry, session, today, engine
-        )
+        result: Answer = answer(request.question, planner, registry, session, today)
         return {
             "prose": result.prose,
             "grounded": result.grounded,
             "unmatched": result.unmatched,
-            "engine": result.engine,
             "chart_spec": result.spec.model_dump(mode="json") if result.spec else None,
         }
 

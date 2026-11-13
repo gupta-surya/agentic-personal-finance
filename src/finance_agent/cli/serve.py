@@ -59,22 +59,12 @@ def build_server_app(ctx: AppContext, *, synthetic: bool, agent: bool = False) -
         return create_app(registry, session, today, source=source)
 
     from finance_agent.agent.api import create_agent_app
-    from finance_agent.agent.narrate import GatewayNarrator
     from finance_agent.agent.plan import GatewayPlanner
     from finance_agent.model_gateway.client import ModelGateway
     from finance_agent.model_gateway.config import ModelConfig
 
-    config = ModelConfig.from_env()
-    gateway = ModelGateway(config)
-    return create_agent_app(
-        registry,
-        session,
-        today,
-        GatewayPlanner(gateway),
-        GatewayNarrator(gateway),
-        source=source,
-        engine=config.model,
-    )
+    gateway = ModelGateway(ModelConfig.from_env())
+    return create_agent_app(registry, session, today, GatewayPlanner(gateway), source=source)
 
 
 def run_serve(
