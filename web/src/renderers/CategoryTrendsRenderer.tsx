@@ -5,7 +5,8 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import type { Series } from "../api/types";
 import { categoryColor } from "../lib/colors";
-import { formatMoney, formatMonth, toNumber } from "../lib/money";
+import { Money } from "../components/Money";
+import { formatMonth, toNumber } from "../lib/money";
 import { Measure } from "../ui/Measure";
 import { EASE_OUT, useCalm } from "../ui/motion";
 import { specCurrency } from "./chartData";
@@ -73,7 +74,7 @@ function Row({ cells, series, currency }: { cells: (string | null)[]; series: Se
         <span className="sub" aria-live="polite">
           {point ? (
             <>
-              {formatMonth(point.x)} <span style={{ color: "var(--ink)", fontWeight: 500 }}>{point.y == null ? "no data" : formatMoney(point.y, currency)}</span>
+              {formatMonth(point.x)} <span style={{ color: "var(--ink)", fontWeight: 500 }}>{point.y == null ? "no data" : <Money amount={point.y} currency={currency} />}</span>
             </>
           ) : (
             <>Avg {average} / month</>

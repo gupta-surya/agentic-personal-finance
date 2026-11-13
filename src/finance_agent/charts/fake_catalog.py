@@ -100,9 +100,16 @@ class FakeSeriesCatalog:
         self._data_version = data_version
         self._calls = 0
 
-    def earliest_date(self) -> date | None:
-        """First posted date, for the ``all_time`` period."""
-        posted = [t.posted for t in self._txns if not t.pending and not t.internal_transfer]
+    def earliest_date(self, currency: str | None = None) -> date | None:
+        """First posted date, for the ``all_time`` period; with ``currency``, the first
+        date in that currency."""
+        posted = [
+            t.posted
+            for t in self._txns
+            if not t.pending
+            and not t.internal_transfer
+            and (currency is None or t.currency == currency)
+        ]
         return min(posted) if posted else None
 
     def _next_result_id(self) -> str:

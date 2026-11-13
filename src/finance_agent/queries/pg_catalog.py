@@ -69,6 +69,8 @@ _EARLIEST = """
       AND NOT t.is_internal_transfer
       AND a.role IN ('on_budget', 'credit')
 """
+# The same, in one currency: where a currency's history starts (the kpi comparison).
+_EARLIEST_IN = _EARLIEST + "  AND a.currency_kind = 'iso' AND a.currency = %s\n"
 
 
 class PostgresSeriesCatalog:
@@ -76,9 +78,13 @@ class PostgresSeriesCatalog:
         self._conn = conn
         self._tenant = tenant_id
 
-    def earliest_date(self) -> date | None:
-        """First posted date, for the ``all_time`` period (not part of the Protocol)."""
-        row = self._conn.execute(_EARLIEST, (self._tenant,)).fetchone()
+    def earliest_date(self, currency: str | None = None) -> date | None:
+        """First posted date, for the ``all_time`` period (not part of the Protocol);
+        with ``currency``, the first date in that currency's accounts."""
+        if currency is None:
+            row = self._conn.execute(_EARLIEST, (self._tenant,)).fetchone()
+        else:
+            row = self._conn.execute(_EARLIEST_IN, (self._tenant, currency)).fetchone()
         assert row is not None
         return row[0]  # type: ignore[no-any-return]
 

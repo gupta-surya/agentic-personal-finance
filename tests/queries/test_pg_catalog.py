@@ -251,6 +251,17 @@ def test_earliest_date_matches_the_fake_and_ignores_transfers_and_pending(
     assert catalog.earliest_date() == to_fake(rows).earliest_date() == date(2025, 9, 1)
 
 
+def test_earliest_date_in_one_currency_matches_the_fake(conn: Connection) -> None:
+    rows = dataset()
+    catalog = to_postgres(conn, TENANT, rows)
+    fake = to_fake(rows)
+
+    assert catalog.earliest_date("USD") == fake.earliest_date("USD") == date(2025, 9, 1)
+    assert catalog.earliest_date("EUR") == fake.earliest_date("EUR")
+    assert fake.earliest_date("EUR") is not None
+    assert catalog.earliest_date("GBP") is None
+
+
 def test_earliest_date_is_none_for_a_tenant_with_no_rows(conn: Connection) -> None:
     assert PostgresSeriesCatalog(conn, TENANT).earliest_date() is None
 

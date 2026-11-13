@@ -200,11 +200,8 @@ function Stat({ label, swatch, amount, currency, signed }: { label: string; swat
         {amount === undefined ? (
           <span className="sub">No data</span>
         ) : signed ? (
-          signOf(amount) === "negative" ? (
-            <Money amount={amount} currency={currency} signed />
-          ) : (
-            <FlowFigure amount={amount} currency={currency} />
-          )
+          // A net is signed both ways: glyph, sign and words, never color alone.
+          <Money amount={amount} currency={currency} signed />
         ) : (
           <FlowFigure amount={amount} currency={currency} />
         )}
@@ -253,7 +250,7 @@ export const CashFlowRenderer: Renderer = ({ spec }) => {
             </span>
             {month.strings.running_net !== undefined && (
               <span style={{ fontWeight: 600 }}>
-                <Money amount={month.strings.running_net} currency={currency} />
+                <Money amount={month.strings.running_net} currency={currency} signed />
               </span>
             )}
           </div>

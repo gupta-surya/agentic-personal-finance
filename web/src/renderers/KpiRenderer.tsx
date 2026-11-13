@@ -1,4 +1,4 @@
-import { FlowFigure } from "../components/Money";
+import { FlowFigure, Money } from "../components/Money";
 import { formatMoney, formatShare, signOf } from "../lib/money";
 import { specCurrency } from "./chartData";
 import type { Renderer } from "./registry";
@@ -20,6 +20,9 @@ export const KpiRenderer: Renderer = ({ spec }) => {
   const percent = point("change_percent")?.y; // absent when the previous value was zero
   if (current == null) return null;
   const comparedWith = spec.assumptions.find((a) => a.key === "compared_with")?.value;
+  // A net can go either way, so it always carries its glyph and sign; spend and income
+  // are amounts, shown plainly (a negative one still gets its glyph).
+  const signedMeasure = spec.params.measure === "net";
 
   const direction = change == null ? null : DIRECTION[signOf(change)];
   const signed = (text: string, amount: string) => (signOf(amount) === "positive" ? `+${text}` : text);
@@ -27,7 +30,7 @@ export const KpiRenderer: Renderer = ({ spec }) => {
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="big" data-testid="kpi-value">
-        <FlowFigure amount={current} currency={currency} />
+        {signedMeasure ? <Money amount={current} currency={currency} signed /> : <FlowFigure amount={current} currency={currency} />}
       </div>
       {change != null && direction ? (
         <div style={{ display: "grid", justifyItems: "start", gap: 6 }} data-testid="kpi-delta">
@@ -45,7 +48,11 @@ export const KpiRenderer: Renderer = ({ spec }) => {
               <>
                 <br />
                 {previous.x}
-                {previous.y != null && <>: {formatMoney(previous.y, currency)}</>}
+                {previous.y != null && (
+                  <>
+                    : <Money amount={previous.y} currency={currency} signed={signedMeasure} />
+                  </>
+                )}
               </>
             )}
           </span>

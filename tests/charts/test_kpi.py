@@ -173,7 +173,7 @@ def test_twelve_months_of_thirteen_months_of_data_is_not_compared() -> None:
         ["Change, percent", "n/a"],
     ]
     assert [a.value for a in spec.assumptions if a.key == "compared_with"] == [
-        "Not enough history: your data starts Sep 1, 2025"
+        "Not enough history: your USD data starts Sep 1, 2025"
     ]
 
 
@@ -201,7 +201,7 @@ def test_a_previous_period_starting_on_the_first_day_of_data_is_compared() -> No
     # Oct 1 – Oct 31 is 31 days, so its previous period, Aug 31 – Sep 30, starts a day early.
     early = render({"preset": "custom", "start": "2025-10-01", "end": "2025-11-01"})
     assert [s.id for s in early.series] == ["current"]
-    # Oct 2 – Oct 31 (30 days) compares with Sep 2 – Oct 1, inside the data.
+    # Oct 1 – Oct 30 (30 days) compares with Sep 1 – Sep 30, inside the data.
     inside = render({"preset": "custom", "start": "2025-10-01", "end": "2025-10-31"})
     assert "previous" in [s.id for s in inside.series]
 
@@ -211,5 +211,25 @@ def test_no_data_at_all_says_so() -> None:
 
     assert point(spec, "current") == Decimal("0")
     assert [a.value for a in spec.assumptions if a.key == "compared_with"] == [
-        "Not enough history: there is no data yet"
+        "Not enough history: there is no USD data yet"
     ]
+
+
+def test_history_is_per_currency() -> None:
+    # USD history from January; the EUR account only from June.
+    catalog = FakeSeriesCatalog(
+        [
+            SyntheticTransaction(date(2026, 1, 5), Decimal("-100.00"), "groceries"),
+            SyntheticTransaction(date(2026, 6, 3), Decimal("-40.00"), "dining", currency="EUR"),
+            SyntheticTransaction(date(2026, 7, 3), Decimal("-60.00"), "dining", currency="EUR"),
+        ]
+    )
+    july = {"preset": "custom", "start": "2026-07-01", "end": "2026-08-01"}  # previous from May 31
+
+    eur = render(july, catalog, currency="EUR")
+    assert [s.id for s in eur.series] == ["current"]
+    assert point(eur, "current") == Decimal("60.00")
+    assert [a.value for a in eur.assumptions if a.key == "compared_with"] == [
+        "Not enough history: your EUR data starts Jun 3, 2026"
+    ]
+    assert "previous" in [s.id for s in render(july, catalog).series]  # USD covers May 31

@@ -69,8 +69,12 @@ describe("CashFlowRenderer", () => {
     chart.focus();
     fireEvent.keyDown(chart, { key: "ArrowLeft" });
     expect(month()).toBe("Feb 2026");
+    // A positive net is signed too: glyph and words, not just "no minus".
+    const net = () => [...container.querySelectorAll(".stat-value .money")].at(-1)!;
+    expect(net()).toHaveTextContent("▲ $549.60 (positive)");
     fireEvent.keyDown(chart, { key: "End" });
     expect(month()).toBe("Mar 2026");
+    expect(net()).toHaveTextContent("▼ −$210.75 (negative)");
   });
 
   it("keeps the exact running net in the data table", () => {

@@ -122,6 +122,17 @@ describe("KpiRenderer", () => {
     expect(screen.getAllByText("You spent $94.50 on Dining, Mar 2026", { exact: false })[0]).toHaveClass("sr-only");
   });
 
+  it("signs a net both ways, with a glyph, including the previous value", () => {
+    const net: ChartSpec = {
+      ...kpi({ current: "4590.33", previous: "-120.00", change: "4710.33", percent: "39.2528" }),
+      params: { currency: "USD", measure: "net" },
+    };
+    show(net);
+
+    expect(screen.getByTestId("kpi-value")).toHaveTextContent("▲ $4,590.33 (positive)");
+    expect(screen.getByTestId("kpi-delta")).toHaveTextContent("Jan 29, 2026 – Feb 28, 2026: ▼ −$120.00 (negative)");
+  });
+
   it("keeps the exact table", () => {
     show(kpi({ current: "2033.35", previous: "1947.05", change: "86.30", percent: "0.0443" }));
     expect(screen.getByRole("table")).toHaveTextContent("$2,033.35");

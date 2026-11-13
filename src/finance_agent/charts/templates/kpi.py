@@ -69,27 +69,28 @@ def _signed(text: str, positive: bool) -> str:
 NOT_ENOUGH_HISTORY = "Not enough history"
 
 
-def _history_start(catalog: SeriesCatalog) -> tuple[bool, date | None]:
-    """``(known, first date with data)``. Both catalogs report their first posted date
-    (a method outside the ``SeriesCatalog`` protocol, as for ``all_time``); a catalog that
-    cannot say keeps the comparison, as before."""
+def _history_start(catalog: SeriesCatalog, currency: str) -> tuple[bool, date | None]:
+    """``(known, first date with data in this currency)``. Both catalogs report their
+    first posted date (a method outside the ``SeriesCatalog`` protocol, as for
+    ``all_time``); a catalog that cannot say keeps the comparison, as before."""
     earliest = getattr(catalog, "earliest_date", None)
     if earliest is None:
         return False, None
-    first: date | None = earliest()
+    first: date | None = earliest(currency)
     return True, first
 
 
-def _covers(previous_start: date, catalog: SeriesCatalog) -> tuple[bool, str | None]:
+def _covers(previous_start: date, catalog: SeriesCatalog, currency: str) -> tuple[bool, str | None]:
     """Whether the data covers the whole previous period, and if not, why (for the
-    "Compared with" line)."""
-    known, first = _history_start(catalog)
+    "Compared with" line). History is per currency: a EUR account opened later has a
+    shorter history than the USD ones."""
+    known, first = _history_start(catalog, currency)
     if not known:
         return True, None
     if first is None:
-        return False, f"{NOT_ENOUGH_HISTORY}: there is no data yet"
+        return False, f"{NOT_ENOUGH_HISTORY}: there is no {currency} data yet"
     if previous_start < first:
-        return False, f"{NOT_ENOUGH_HISTORY}: your data starts {day_label(first)}"
+        return False, f"{NOT_ENOUGH_HISTORY}: your {currency} data starts {day_label(first)}"
     return True, None
 
 
@@ -104,7 +105,7 @@ def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
     )
     if current.value is None:
         raise ValueError("kpi must return scalar values")
-    comparable, reason = _covers(previous_start, catalog)
+    comparable, reason = _covers(previous_start, catalog, params.currency)
     if not comparable:
         assert reason is not None
         return _without_comparison(params, period, current, previous_label, reason)

@@ -184,6 +184,11 @@ body {
 .cents {
   color: var(--ink-3);
 }
+/* The direction glyph is a cue beside the sign, not the headline: smaller, raised. */
+.glyph {
+  font-size: 0.62em;
+  vertical-align: 0.16em;
+}
 .flow::part(fraction) {
   color: var(--ink-3);
 }

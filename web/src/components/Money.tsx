@@ -20,7 +20,7 @@ export function Money({
   const showGlyph = sign === "negative" || (signed && sign === "positive");
   return (
     <span className="money" data-sign={sign}>
-      {showGlyph && <span aria-hidden="true">{GLYPH[sign]} </span>}
+      {showGlyph && <span className="glyph" aria-hidden="true">{GLYPH[sign]} </span>}
       {formatMoney(amount, currency)}
       {showGlyph && <span className="sr-only"> ({WORD[sign]})</span>}
     </span>
@@ -34,7 +34,7 @@ export function Figure({ amount, currency = "USD" }: { amount: string; currency?
   const negative = signOf(amount) === "negative";
   return (
     <span className="money" data-sign={negative ? "negative" : undefined}>
-      {negative && <span aria-hidden="true">▼ </span>}
+      {negative && <span className="glyph" aria-hidden="true">▼ </span>}
       {text.slice(0, dot)}
       <span className={negative ? undefined : "cents"}>{text.slice(dot)}</span>
       {negative && <span className="sr-only"> (negative)</span>}
@@ -42,9 +42,12 @@ export function Figure({ amount, currency = "USD" }: { amount: string; currency?
   );
 }
 
+// One locale for the guard and the animation, so the digits that roll are the digits the
+// guard checked (NumberFlow would otherwise use the browser's locale).
+const LOCALE = "en-US";
 const INTL: Record<string, Intl.NumberFormat> = {};
 const intl = (currency: string) =>
-  (INTL[currency] ??= new Intl.NumberFormat("en-US", { style: "currency", currency }));
+  (INTL[currency] ??= new Intl.NumberFormat(LOCALE, { style: "currency", currency }));
 
 /** A headline amount that rolls its digits when it changes from one query result to
  *  another (never counting up from zero). NumberFlow needs a number, so it is used only
@@ -69,6 +72,7 @@ export function FlowFigure({ amount, currency = "USD" }: { amount: string; curre
       <span aria-hidden="true">
         <NumberFlow
           value={value}
+          locales={LOCALE}
           format={{ style: "currency", currency }}
           className="flow"
           transformTiming={{ duration: 320, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }}
