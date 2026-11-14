@@ -87,8 +87,16 @@ def test_income_is_unchanged_and_net_fell() -> None:
 
 
 def test_a_zero_previous_period_has_no_percentage_never_infinity() -> None:
-    spec = render({"preset": "custom", "start": "2025-09-01", "end": "2025-10-01"})
+    # History starts in July, so August (the previous period) is covered but empty.
+    catalog = FakeSeriesCatalog(
+        [
+            SyntheticTransaction(date(2025, 7, 15), Decimal("3200.00"), "income"),
+            SyntheticTransaction(date(2025, 9, 3), Decimal("-120.00"), "groceries"),
+        ]
+    )
+    spec = render({"preset": "custom", "start": "2025-09-01", "end": "2025-10-01"}, catalog)
 
+    assert point(spec, "current") == Decimal("120.00")
     assert point(spec, "previous") == Decimal("0")
     assert point(spec, "change") == point(spec, "current")
     assert point(spec, "change_percent") is None  # no series at all
@@ -145,3 +153,83 @@ def test_params_are_validated() -> None:
         render(measure="profit")
     with pytest.raises(ValidationError):
         render(interval="weekly")
+
+
+# --- comparisons need the whole previous period (the "+1,327.7%" bug) -----------------
+# The synthetic data starts Sep 1, 2025.
+
+
+def test_twelve_months_of_thirteen_months_of_data_is_not_compared() -> None:
+    spec = render({"preset": "last_12_months"})  # Oct 2025 – Sep 2026; previous from Oct 2024
+
+    assert point(spec, "current") == Decimal("26705.17")
+    assert [s.id for s in spec.series] == ["current"]  # no previous, change or percent
+    assert [s.query for s in spec.sources] == ["kpi"]  # the partial total is never queried
+    assert spec.title == "You spent $26,705.17, Oct 2025 – Sep 2026"
+    assert spec.table.rows == [
+        ["Oct 1, 2025 – Sep 30, 2026", "$26,705.17"],
+        ["Previous period, Oct 1, 2024 – Sep 30, 2025", "Not enough history"],
+        ["Change", "n/a"],
+        ["Change, percent", "n/a"],
+    ]
+    assert [a.value for a in spec.assumptions if a.key == "compared_with"] == [
+        "Not enough history: your USD data starts Sep 1, 2025"
+    ]
+
+
+def test_all_time_has_no_change() -> None:
+    spec = render({"preset": "all_time"}, measure="net")
+
+    assert [s.id for s in spec.series] == ["current"]
+    assert spec.table.rows[2:] == [["Change", "n/a"], ["Change, percent", "n/a"]]
+
+
+def test_six_months_is_still_compared_when_history_covers_the_previous_period() -> None:
+    spec = render({"preset": "last_6_months"})  # previous Sep 30, 2025 – Mar 31, 2026
+
+    assert [s.id for s in spec.series] == ["current", "previous", "change", "change_percent"]
+    assert point(spec, "current") == Decimal("14609.67")
+    # Oct–Mar outflows (cash_flow) total 12,120.50; spend nets March's 25.00 refund.
+    assert point(spec, "previous") == Decimal("12095.50")
+    assert point(spec, "change") == Decimal("2514.17")
+    assert point(spec, "change_percent") == Decimal("0.2079")
+
+
+def test_a_previous_period_starting_on_the_first_day_of_data_is_compared() -> None:
+    first = date(2025, 9, 1)
+    assert FakeSeriesCatalog().earliest_date() == first
+    # Oct 1 – Oct 31 is 31 days, so its previous period, Aug 31 – Sep 30, starts a day early.
+    early = render({"preset": "custom", "start": "2025-10-01", "end": "2025-11-01"})
+    assert [s.id for s in early.series] == ["current"]
+    # Oct 1 – Oct 30 (30 days) compares with Sep 1 – Sep 30, inside the data.
+    inside = render({"preset": "custom", "start": "2025-10-01", "end": "2025-10-31"})
+    assert "previous" in [s.id for s in inside.series]
+
+
+def test_no_data_at_all_says_so() -> None:
+    spec = render({"preset": "this_month"}, FakeSeriesCatalog([]))
+
+    assert point(spec, "current") == Decimal("0")
+    assert [a.value for a in spec.assumptions if a.key == "compared_with"] == [
+        "Not enough history: there is no USD data yet"
+    ]
+
+
+def test_history_is_per_currency() -> None:
+    # USD history from January; the EUR account only from June.
+    catalog = FakeSeriesCatalog(
+        [
+            SyntheticTransaction(date(2026, 1, 5), Decimal("-100.00"), "groceries"),
+            SyntheticTransaction(date(2026, 6, 3), Decimal("-40.00"), "dining", currency="EUR"),
+            SyntheticTransaction(date(2026, 7, 3), Decimal("-60.00"), "dining", currency="EUR"),
+        ]
+    )
+    july = {"preset": "custom", "start": "2026-07-01", "end": "2026-08-01"}  # previous from May 31
+
+    eur = render(july, catalog, currency="EUR")
+    assert [s.id for s in eur.series] == ["current"]
+    assert point(eur, "current") == Decimal("60.00")
+    assert [a.value for a in eur.assumptions if a.key == "compared_with"] == [
+        "Not enough history: your EUR data starts Jun 3, 2026"
+    ]
+    assert "previous" in [s.id for s in render(july, catalog).series]  # USD covers May 31

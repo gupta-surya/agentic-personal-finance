@@ -104,6 +104,11 @@ def _fmt(day: date) -> str:
     return f"{_MONTHS[day.month - 1]} {day.day}, {day.year}"
 
 
+def day_label(day: date) -> str:
+    """``"Sep 1, 2026"``."""
+    return _fmt(day)
+
+
 def range_label(start: date, end: date) -> str:
     """``"Sep 1, 2026 – Sep 30, 2026"`` for ``[start, end)`` (``end`` exclusive)."""
     return f"{_fmt(start)} – {_fmt(end - timedelta(days=1))}"

@@ -10,20 +10,36 @@ export type ChartState =
   | { status: "error"; message: string }
   | { status: "ready"; spec: ChartSpec };
 
-const card = "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4";
+const SOURCE_NAME: Record<string, string> = { question: "from the question", default: "default" };
 
-/** Title, chart, assumptions, provenance and a table view around any ChartSpec.
- *  The table is always in the DOM (visually hidden until toggled) so screen readers
- *  get the data whether or not the chart can be read. */
-export function ChartFrame({ state, onChoose }: { state: ChartState; onChoose?: Choose }) {
+/** The card around any ChartSpec: the finding as its title, the period beneath, the
+ *  chart, then a quiet footer. Assumptions and sources sit in one "Details" disclosure
+ *  (provenance stays one click away). The data table is always in the DOM, visually
+ *  hidden until toggled, so screen readers get the exact figures either way. */
+export function ChartFrame({
+  state,
+  onChoose,
+  onRetry,
+  compact = false,
+  className = "",
+}: {
+  state: ChartState;
+  onChoose?: Choose;
+  onRetry?: () => void;
+  /** A tile: shorter skeleton, no table toggle in the header. */
+  compact?: boolean;
+  className?: string;
+}) {
   const tableId = useId();
+  const headingId = useId();
   const [showTable, setShowTable] = useState(false);
 
   if (state.status === "loading") {
     return (
-      <section className={card} aria-busy="true" aria-label="Loading chart">
-        <div className="h-5 w-1/3 animate-pulse rounded bg-[var(--surface-muted)]" />
-        <div className="mt-4 h-48 animate-pulse rounded bg-[var(--surface-muted)]" />
+      <section className={`card ${className}`} aria-busy="true" aria-label="Loading chart">
+        <div className="skeleton" style={{ height: 16, width: "45%" }} />
+        <div className="skeleton" style={{ height: 12, width: "28%", marginTop: 8 }} />
+        <div className="skeleton" style={{ height: compact ? 40 : 220, marginTop: 18 }} />
         <span className="sr-only" role="status">
           Loading chart
         </span>
@@ -33,86 +49,99 @@ export function ChartFrame({ state, onChoose }: { state: ChartState; onChoose?: 
 
   if (state.status === "error") {
     return (
-      <section className={card} role="alert">
-        <h2 className="text-base font-semibold">This chart could not be drawn</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{state.message}</p>
+      <section className={`card ${className}`} role="alert">
+        <h2 className="title">This chart could not be drawn</h2>
+        <p className="sub" style={{ margin: "4px 0 12px" }}>
+          {state.message}
+        </p>
+        {onRetry && (
+          <button type="button" className="btn" onClick={onRetry}>
+            Try again
+          </button>
+        )}
       </section>
     );
   }
 
   const { spec } = state;
-  if (spec.clarify) return <ClarifyCard spec={spec} onChoose={onChoose} />;
+  if (spec.clarify) return <ClarifyCard spec={spec} onChoose={onChoose} className={className} />;
   const resultIds = spec.sources.map((source) => source.result_id).join(", ");
 
   if (spec.table.rows.length === 0) {
     return (
-      <section className={card}>
-        <h2 className="text-base font-semibold">{spec.title}</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{spec.period?.label}</p>
-        <p className="mt-4 text-sm" role="status">
-          No data for this period.
+      <section className={`card ${className}`} aria-labelledby={headingId}>
+        <h2 className="title" id={headingId}>
+          {spec.title}
+        </h2>
+        <p className="sub" style={{ margin: "2px 0 0" }}>
+          {spec.period?.label}
+        </p>
+        <p className="sub" role="status" style={{ margin: "18px 0 4px", color: "var(--ink-2)" }}>
+          No data for this period. Try a longer period.
         </p>
       </section>
     );
   }
 
   const Renderer = getRenderer(spec.template_id);
+  const heading = Renderer?.heading?.(spec);
 
   return (
-    <figure className={`${card} m-0`}>
-      <figcaption>
-        <h2 className="text-base font-semibold">{spec.title}</h2>
-        <p className="text-sm text-[var(--text-muted)]">{spec.period?.label}</p>
-      </figcaption>
+    <figure className={`card ${className}`} aria-labelledby={headingId}>
+      <div className="cardhead">
+        <div className="cardhead-text">
+          <h2 className={heading ? "eyebrow" : "title"} id={headingId} style={{ margin: 0 }}>
+            {heading ?? spec.title}
+            {heading && <span className="sr-only">: {spec.title}</span>}
+          </h2>
+          <p className="sub" style={{ margin: 0 }}>
+            {spec.period?.label}
+          </p>
+        </div>
+        {Renderer && (
+          <button
+            type="button"
+            className="btn-quiet"
+            aria-pressed={showTable}
+            aria-controls={tableId}
+            onClick={() => setShowTable((value) => !value)}
+          >
+            {showTable ? "Hide table" : "Table"}
+          </button>
+        )}
+      </div>
 
-      <div className="mt-3" title={`Source results: ${resultIds}`} data-result-ids={resultIds}>
+      <div style={{ marginTop: heading ? 6 : 16 }} title={`Source results: ${resultIds}`} data-result-ids={resultIds}>
         {Renderer ? (
           <div role="group" aria-label={`${spec.title} chart`}>
             <Renderer spec={spec} />
           </div>
         ) : (
-          <p role="alert" className="text-sm text-[var(--text-muted)]">
+          <p role="alert" className="sub">
             {`There is no chart for “${spec.template_id}” yet, so the data is shown as a table.`}
           </p>
         )}
       </div>
 
-      <div className="mt-3">
-        {Renderer && (
-          <button
-            type="button"
-            aria-pressed={showTable}
-            aria-controls={tableId}
-            onClick={() => setShowTable((value) => !value)}
-            className="rounded border border-[var(--border)] px-2 py-1 text-sm"
-          >
-            {showTable ? "Hide data table" : "Show data table"}
-          </button>
-        )}
-        <div className={showTable || !Renderer ? "mt-2 overflow-x-auto" : "sr-only"}>
-          <DataTable spec={spec} id={tableId} />
-        </div>
+      <div className={showTable || !Renderer ? "" : "sr-only"} style={showTable || !Renderer ? { marginTop: 14, overflowX: "auto" } : undefined}>
+        <DataTable spec={spec} id={tableId} />
       </div>
 
-      {spec.assumptions.length > 0 && (
-        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          {spec.assumptions.map((assumption) => (
-            <div key={assumption.key} className="contents">
-              <dt className="text-[var(--text-muted)]">{assumption.label}</dt>
-              <dd>
-                {assumption.value}{" "}
-                <span className="text-[var(--text-muted)]">
-                  ({assumption.source.replace("_", " ")})
-                </span>
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-[var(--text-muted)]">Sources</summary>
-        <ul className="mt-1 list-disc pl-5">
+      <details className="details">
+        <summary>Details</summary>
+        {spec.assumptions.length > 0 && (
+          <dl>
+            {spec.assumptions.map((assumption) => (
+              <div key={assumption.key} style={{ display: "contents" }}>
+                <dt>{assumption.label}</dt>
+                <dd>
+                  {assumption.value} <span style={{ color: "var(--ink-3)" }}>({SOURCE_NAME[assumption.source] ?? assumption.source.replace("_", " ")})</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        <ul aria-label="Sources">
           {spec.sources.map((source) => (
             <li key={source.result_id}>
               {`${source.query} · ${source.result_id} · data ${source.data_version} · as of ${formatAsOf(source.as_of)}`}

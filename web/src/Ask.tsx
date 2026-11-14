@@ -36,65 +36,60 @@ export function Ask() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="ask">
       <form
+        className="ask-form"
         onSubmit={(event) => {
           event.preventDefault();
           void submit(question);
         }}
-        className="flex gap-2"
       >
         <input
           data-testid="ask-input"
+          className="ask-input"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           placeholder="Ask about your spending…"
           aria-label="Ask about your spending"
-          className="flex-1 rounded border border-[var(--border)] bg-[var(--surface)] px-3 py-2"
         />
-        <button
-          data-testid="ask-submit"
-          type="submit"
-          className="rounded bg-[var(--text)] px-4 py-2 text-[var(--surface)]"
-        >
+        <button data-testid="ask-submit" type="submit" className="btn ask-send">
           Ask
         </button>
       </form>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="ask-suggestions">
         {SUGGESTIONS.map((suggestion) => (
-          <button
-            key={suggestion}
-            type="button"
-            onClick={() => void submit(suggestion)}
-            className="rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--text-muted)]"
-          >
+          <button key={suggestion} type="button" className="chip ask-chip" onClick={() => void submit(suggestion)}>
             {suggestion}
           </button>
         ))}
       </div>
 
       {state.status === "loading" && (
-        <p role="status" className="text-sm text-[var(--text-muted)]">
+        <p role="status" className="sub ask-status">
           Thinking…
         </p>
       )}
       {state.status === "error" && (
-        <p role="alert" className="text-sm text-red-600">
-          {state.message}
-        </p>
+        <section className="card ask-error" role="alert">
+          <h2 className="title">Something went wrong</h2>
+          <p className="sub" style={{ marginTop: 4 }}>
+            {state.message}
+          </p>
+          <button type="button" className="btn" style={{ marginTop: 12 }} onClick={() => void submit(question)}>
+            Try again
+          </button>
+        </section>
       )}
       {state.status === "ready" && (
-        <section className="space-y-3" data-testid="ask-answer">
-          <p className="text-base">{state.answer.prose}</p>
+        <section className="ask-answer" data-testid="ask-answer">
+          <p className="ask-prose">{state.answer.prose}</p>
           {!state.answer.grounded && (
-            <p className="text-xs text-[var(--text-muted)]" data-testid="grounding-note">
+            <p className="sub" data-testid="grounding-note">
               Showing the verified summary; an unverified figure was withheld.
             </p>
           )}
-          {state.answer.chart_spec && (
-            <ChartFrame state={{ status: "ready", spec: state.answer.chart_spec }} />
-          )}
+          {state.answer.chart_spec && <ChartFrame state={{ status: "ready", spec: state.answer.chart_spec }} />}
         </section>
       )}
     </div>

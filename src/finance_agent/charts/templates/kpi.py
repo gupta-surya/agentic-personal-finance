@@ -4,6 +4,11 @@ One headline number with its change from the previous period of the same length.
 value and the previous value are two scalar ``kpi`` queries; the change amount and
 percentage come from the ``period_delta`` engine, which cites both. The builder only
 copies and labels them.
+
+The change is shown only when the data covers the whole previous period. If history
+starts inside it (twelve months asked of thirteen months of data, or ``all_time``), the
+previous total would be a few days or weeks of spending, and comparing a year with that
+is not a change, so the tile shows the value with "not enough history" instead.
 """
 
 from datetime import date, timedelta
@@ -12,7 +17,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from finance_agent.charts.period import Period, range_label
+from finance_agent.charts.period import Period, ResolvedPeriod, day_label, range_label
 from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
@@ -24,6 +29,7 @@ from finance_agent.charts.templates.common import (
     span_label,
 )
 from finance_agent.engines.period_delta import period_delta
+from finance_agent.queries.result import QueryResult, ScalarRow
 from finance_agent.queries.series import KpiMeasure, SeriesCatalog
 
 _MEASURE_NAME = {"spend": "Spending", "income": "Income", "net": "Net cash flow"}
@@ -60,6 +66,34 @@ def _signed(text: str, positive: bool) -> str:
     return f"+{text}" if positive else text
 
 
+NOT_ENOUGH_HISTORY = "Not enough history"
+
+
+def _history_start(catalog: SeriesCatalog, currency: str) -> tuple[bool, date | None]:
+    """``(known, first date with data in this currency)``. Both catalogs report their
+    first posted date (a method outside the ``SeriesCatalog`` protocol, as for
+    ``all_time``); a catalog that cannot say keeps the comparison, as before."""
+    earliest = getattr(catalog, "earliest_date", None)
+    if earliest is None:
+        return False, None
+    first: date | None = earliest(currency)
+    return True, first
+
+
+def _covers(previous_start: date, catalog: SeriesCatalog, currency: str) -> tuple[bool, str | None]:
+    """Whether the data covers the whole previous period, and if not, why (for the
+    "Compared with" line). History is per currency: a EUR account opened later has a
+    shorter history than the USD ones."""
+    known, first = _history_start(catalog, currency)
+    if not known:
+        return True, None
+    if first is None:
+        return False, f"{NOT_ENOUGH_HISTORY}: there is no {currency} data yet"
+    if previous_start < first:
+        return False, f"{NOT_ENOUGH_HISTORY}: your {currency} data starts {day_label(first)}"
+    return True, None
+
+
 def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
     period = resolve(params.period, today, catalog)
     # The previous period is the same length immediately before this one.
@@ -69,11 +103,17 @@ def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
     current = catalog.kpi(
         params.measure, period.start, period.end, params.currency, category=params.category
     )
+    if current.value is None:
+        raise ValueError("kpi must return scalar values")
+    comparable, reason = _covers(previous_start, catalog, params.currency)
+    if not comparable:
+        assert reason is not None
+        return _without_comparison(params, period, current, previous_label, reason)
     previous = catalog.kpi(
         params.measure, previous_start, period.start, params.currency, category=params.category
     )
     delta = period_delta(current, previous)
-    if current.value is None or previous.value is None or delta.rows is None:
+    if previous.value is None or delta.rows is None:
         raise ValueError("kpi must return scalar values")
     change = delta.rows[0]
     cur = params.currency
@@ -120,13 +160,34 @@ def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
             )
         )
 
+    return ChartSpec(
+        template_id="kpi",
+        title=_title(params, current.value, span),
+        params=params.model_dump(mode="json"),
+        period=period,
+        series=series,
+        assumptions=_assumptions(params, previous_label),
+        sources=[source_of(current), source_of(previous), source_of(delta)],
+        table=Table(
+            columns=["Measure", "Value"],
+            rows=[
+                [period.label, format_money(current.value, cur)],
+                [f"Previous period, {previous_label}", format_money(previous.value, cur)],
+                ["Change", change_text],
+                ["Change, percent", percent_text],
+            ],
+        ),
+    )
+
+
+def _assumptions(params: KpiParams, compared_with: str) -> list[Assumption]:
     assumptions = [
-        Assumption(key="currency", label="Currency", value=cur, source="default"),
+        Assumption(key="currency", label="Currency", value=params.currency, source="default"),
         Assumption(
             key="measure", label="Measure", value=_MEASURE_NAME[params.measure], source="question"
         ),
         Assumption(
-            key="compared_with", label="Compared with", value=previous_label, source="default"
+            key="compared_with", label="Compared with", value=compared_with, source="default"
         ),
     ]
     if params.category is not None:
@@ -139,22 +200,44 @@ def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
                 source="question",
             ),
         )
+    return assumptions
 
+
+def _without_comparison(
+    params: KpiParams,
+    period: ResolvedPeriod,
+    current: QueryResult[ScalarRow],
+    previous_label: str,
+    reason: str,
+) -> ChartSpec:
+    """The value alone. The previous period is not queried at all: a partial total is not
+    a figure worth citing. The table keeps its four rows so readers find the same shape."""
+    assert current.value is not None
+    cur = params.currency
+    span = span_label(period.start, period.end - timedelta(days=1))
     return ChartSpec(
         template_id="kpi",
         title=_title(params, current.value, span),
         params=params.model_dump(mode="json"),
         period=period,
-        series=series,
-        assumptions=assumptions,
-        sources=[source_of(current), source_of(previous), source_of(delta)],
+        series=[
+            Series(
+                id="current",
+                kind="point",
+                label=period.label,
+                result_id=current.result_id,
+                points=[Point(x=period.label, y=current.value)],
+            )
+        ],
+        assumptions=_assumptions(params, reason),
+        sources=[source_of(current)],
         table=Table(
             columns=["Measure", "Value"],
             rows=[
                 [period.label, format_money(current.value, cur)],
-                [f"Previous period, {previous_label}", format_money(previous.value, cur)],
-                ["Change", change_text],
-                ["Change, percent", percent_text],
+                [f"Previous period, {previous_label}", NOT_ENOUGH_HISTORY],
+                ["Change", "n/a"],
+                ["Change, percent", "n/a"],
             ],
         ),
     )
