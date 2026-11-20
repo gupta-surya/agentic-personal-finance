@@ -45,12 +45,18 @@ export function GridY({
   );
 }
 
-/** "2026-04-01" -> "Apr"; January and the first month carry the year ("Jan ’26"). */
-export function monthTick(iso: string, first: boolean): string {
+/** "2026-04-01" -> "Apr"; January and the first month carry the year ("Jan ’26"). The
+ *  month-to-date bucket reads "Oct MTD". */
+export function monthTick(iso: string, first: boolean, partial = false): string {
   const label = formatMonth(iso); // "Apr 2026"
   const [month, year] = label.split(" ");
-  return first || month === "Jan" ? `${month} ’${(year ?? "").slice(2)}` : (month ?? label);
+  const tick = first || month === "Jan" ? `${month} ’${(year ?? "").slice(2)}` : (month ?? label);
+  return partial ? `${tick} MTD` : tick;
 }
+
+/** A partial (month-to-date) bar: lighter fill with a dashed outline in the same color. */
+export const partialBar = (partial: boolean | undefined, color: string) =>
+  partial ? { fillOpacity: 0.45, stroke: color, strokeWidth: 1.5, strokeDasharray: "3 2" } : {};
 
 /** Every `step`-th label, so labels never collide: about 48px per label. */
 export function labelStep(count: number, innerWidth: number): number {

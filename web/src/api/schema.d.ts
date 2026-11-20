@@ -149,6 +149,11 @@ export interface components {
             high?: string | null;
             /** Low */
             low?: string | null;
+            /**
+             * Partial
+             * @default false
+             */
+            partial: boolean;
             /** X */
             x: string;
             /** Y */

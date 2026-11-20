@@ -17,8 +17,8 @@ const spec: ChartSpec = {
   template_id: "category_trends",
   title: "Category spending trends, Apr 2026 – Jul 2026",
   series: [
-    { id: "category:dining", kind: "line", label: "Dining", result_id: "r", points: months.map((x, i) => ({ x, y: ["100", "100", "150", "150"][i]! })) },
-    { id: "category:rent", kind: "line", label: "Rent", result_id: "r", points: months.map((x) => ({ x, y: "1500.00" })) },
+    { id: "category:dining", kind: "line", label: "Dining", result_id: "r", points: months.map((x, i) => ({ x, y: ["100", "100", "150", "150"][i]!, partial: false })) },
+    { id: "category:rent", kind: "line", label: "Rent", result_id: "r", points: months.map((x) => ({ x, y: "1500.00", partial: false })) },
   ],
   table: {
     columns: ["Category", "Average per month", "Lowest month", "Highest month", "Change", "Trend"],

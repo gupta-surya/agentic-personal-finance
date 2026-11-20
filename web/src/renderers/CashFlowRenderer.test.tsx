@@ -22,8 +22,8 @@ const spec: ChartSpec = {
       label: "Running net",
       result_id: "running_net:res_7f3b",
       points: [
-        { x: "2026-02-01", y: "549.60" },
-        { x: "2026-03-01", y: "338.85" },
+        { x: "2026-02-01", y: "549.60", partial: false },
+        { x: "2026-03-01", y: "338.85", partial: false },
       ],
     },
   ],

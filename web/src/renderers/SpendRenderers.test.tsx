@@ -17,8 +17,8 @@ const bars = (ids: [string, string][]): Series[] =>
     label,
     result_id: "res_1",
     points: [
-      { x: "2026-03-01", y: "366.20" },
-      { x: "2026-05-01", y: "10.00" }, // April has no spend: a gap, not a zero
+      { x: "2026-03-01", y: "366.20", partial: false },
+      { x: "2026-05-01", y: "10.00", partial: false }, // April has no spend: a gap, not a zero
     ],
   }));
 
@@ -48,8 +48,8 @@ const breakdown: ChartSpec = {
       label: "Spend",
       result_id: "res_1",
       points: [
-        { x: "Rent", y: "1500.00" },
-        { x: "Groceries", y: "-50.00" },
+        { x: "Rent", y: "1500.00", partial: false },
+        { x: "Groceries", y: "-50.00", partial: false },
       ],
     },
     {
@@ -58,8 +58,8 @@ const breakdown: ChartSpec = {
       label: "Share of total",
       result_id: "res_1",
       points: [
-        { x: "Rent", y: "0.7377" },
-        { x: "Groceries", y: "-0.0245" },
+        { x: "Rent", y: "0.7377", partial: false },
+        { x: "Groceries", y: "-0.0245", partial: false },
       ],
     },
   ],

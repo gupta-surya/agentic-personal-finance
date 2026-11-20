@@ -8,7 +8,7 @@ import { formatMoney, formatMonth, signOf } from "../lib/money";
 import { Measure } from "../ui/Measure";
 import { EASE_OUT, SPRING, useCalm } from "../ui/motion";
 import { pivotSeries, seriesLabel, specCurrency, type Row } from "./chartData";
-import { barPath, GridY, labelStep, monthTick, nearestIndex, stepFor } from "./primitives";
+import { barPath, GridY, labelStep, monthTick, nearestIndex, partialBar, stepFor } from "./primitives";
 import type { Renderer } from "./registry";
 
 const H = 260;
@@ -86,6 +86,7 @@ function MirrorBars({
                   animate={{ d: barPath(bx, bw, y(0), y(inflow)) }}
                   transition={{ ...SPRING, delay }}
                   fill={IN}
+                  {...partialBar(r.partial, IN)}
                 />
               )}
               {outflow !== undefined && (
@@ -95,6 +96,7 @@ function MirrorBars({
                   animate={{ d: barPath(bx, bw, y(0) + 2, y(-outflow) + 2) }}
                   transition={{ ...SPRING, delay: delay + 0.04 }}
                   fill={OUT}
+                  {...partialBar(r.partial, OUT)}
                 />
               )}
               {r.values.net !== undefined && (
@@ -136,7 +138,7 @@ function MirrorBars({
                 fill={i === active ? "var(--ink)" : "var(--ink-3)"}
                 fontWeight={i === active ? 600 : 400}
               >
-                {show ? monthTick(r.x, i === 0) : ""}
+                {show ? monthTick(r.x, i === 0, r.partial) : ""}
               </text>
             </motion.g>
           );
