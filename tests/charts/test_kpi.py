@@ -112,13 +112,21 @@ def test_no_data_is_a_zero_not_an_empty_state() -> None:
     assert spec.table.rows[0][1] == "$0.00"
 
 
-def test_previous_period_is_the_same_length_for_a_partial_month() -> None:
-    spec = render({"preset": "this_month"})  # Oct 1 – Oct 25 (end exclusive Oct 26)
+def test_this_month_is_compared_with_the_same_days_of_last_month() -> None:
+    spec = render({"preset": "this_month"})  # Oct 1 – Oct 25
 
-    assert [a.value for a in spec.assumptions if a.key == "compared_with"] == [
-        "Sep 6, 2026 – Sep 30, 2026"
-    ]
-    assert spec.table.rows[1][0] == "Previous period, Sep 6, 2026 – Sep 30, 2026"
+    assert [a.value for a in spec.assumptions if a.key == "compared_with"] == ["vs Sep 1–25"]
+    assert spec.table.rows[1][0] == "Previous period, Sep 1, 2026 – Sep 25, 2026"
+
+
+def test_last_month_is_compared_with_the_full_month_before() -> None:
+    catalog = FakeSeriesCatalog()
+    spec = render({"preset": "last_month"}, catalog)
+
+    expected = catalog.kpi("spend", date(2026, 8, 1), date(2026, 9, 1), "USD")
+    assert [a.value for a in spec.assumptions if a.key == "compared_with"] == ["vs Aug 2026"]
+    assert point(spec, "previous") == expected.value
+    assert [s.query for s in spec.sources] == ["kpi", "kpi", "period_delta"]
 
 
 def test_currency_is_never_mixed() -> None:
