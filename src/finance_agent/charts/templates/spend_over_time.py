@@ -17,7 +17,8 @@ from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Tabl
 from finance_agent.charts.templates.common import (
     category_label,
     format_money,
-    month_label,
+    mtd_label,
+    partial_month,
     resolve,
     series_id,
     source_of,
@@ -35,6 +36,7 @@ class SpendOverTimeParams(BaseModel):
     categories: list[str] = []  # explicit selection; empty means the top N
     top_n: int = Field(default=6, ge=1, le=12)
     currency: str = "USD"
+    include_current_month: bool = False
 
 
 def _key(row: MonthlyCategorySpendRow) -> tuple[str, str | None]:
@@ -55,7 +57,8 @@ def _sort_key(key: tuple[str, str | None]) -> tuple[int, str]:
 
 
 def build(params: SpendOverTimeParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
-    period = resolve(params.period, today, catalog)
+    period = resolve(params.period, today, catalog, params.include_current_month)
+    mtd = partial_month(period, today, params.include_current_month)
     chosen = set(params.categories)
     result = catalog.monthly_spend_by_category(
         period.start,
@@ -75,7 +78,11 @@ def build(params: SpendOverTimeParams, catalog: SeriesCatalog, today: date) -> C
             kind=kind,
             label=category_label(key[1], is_other=key[0] == "other"),
             result_id=result.result_id,
-            points=[Point(x=r.month.isoformat(), y=r.spend) for r in rows if _key(r) == key],
+            points=[
+                Point(x=r.month.isoformat(), y=r.spend, partial=r.month == mtd)
+                for r in rows
+                if _key(r) == key
+            ],
         )
         for key in keys
     ]
@@ -120,7 +127,7 @@ def build(params: SpendOverTimeParams, catalog: SeriesCatalog, today: date) -> C
             columns=["Month", *[s.label for s in series]],
             rows=[
                 [
-                    month_label(month),
+                    mtd_label(month, month == mtd),
                     *[
                         format_money(spend, cur)
                         if (spend := by_cell.get((s.id, month))) is not None

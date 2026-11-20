@@ -7,6 +7,8 @@ export interface Row {
   x: string;
   values: Record<string, number>;
   strings: Record<string, string>;
+  /** The month-to-date bucket: drawn dashed and labelled MTD. */
+  partial?: boolean;
 }
 
 export function pivotSeries(series: Series[]): Row[] {
@@ -18,6 +20,7 @@ export function pivotSeries(series: Series[]): Row[] {
         row.values[s.id] = toNumber(p.y);
         row.strings[s.id] = p.y;
       }
+      if (p.partial) row.partial = true;
       byX.set(p.x, row);
     }
   }

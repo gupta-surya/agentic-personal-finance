@@ -14,7 +14,7 @@ const point = (id: string, label: string, x: string, y: string): Series => ({
   kind: "point",
   label,
   result_id: "res",
-  points: [{ x, y }],
+  points: [{ x, y, partial: false }],
 });
 
 function kpi(overrides: { current: string; previous: string; change: string; percent?: string; currency?: string }): ChartSpec {
@@ -80,6 +80,15 @@ describe("KpiRenderer", () => {
 
     expect(screen.getByTestId("kpi-value")).toHaveTextContent("−€300.00");
     expect(screen.getByTestId("kpi-delta")).toHaveTextContent("−€400.00−400%");
+  });
+
+  it("names the calendar-aligned window the change is measured against", () => {
+    show({
+      ...kpi({ current: "2033.35", previous: "1947.05", change: "86.30", percent: "0.0443" }),
+      assumptions: [{ key: "compared_with", label: "Compared with", value: "vs Aug 2026", source: "default" }],
+    });
+
+    expect(screen.getByTestId("kpi-delta")).toHaveTextContent("more than the previous period (vs Aug 2026)");
   });
 
   it("says why there is no change when history starts inside the previous period", () => {

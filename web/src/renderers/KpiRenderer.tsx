@@ -43,7 +43,7 @@ export const KpiRenderer: Renderer = ({ spec }) => {
             <span style={{ color: "var(--ink-3)" }}>{percent == null ? "n/a" : signed(formatShare(percent), percent)}</span>
           </span>
           <span className="sub">
-            {direction.relation} the previous period
+            {direction.relation} the previous period{comparedWith && ` (${comparedWith})`}
             {previous && (
               <>
                 <br />

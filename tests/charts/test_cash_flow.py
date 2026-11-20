@@ -131,3 +131,21 @@ def test_served_over_http_with_string_money() -> None:
     body = response.json()
     assert body["series"][2]["points"][0]["y"] == "-210.75"
     assert body["title"] == "You spent more than you earned, Mar 2026: net −$210.75"
+
+
+def test_include_current_month_appends_a_partial_mtd_bucket() -> None:
+    spec = default_registry().render(
+        "cash_flow",
+        {"period": {"preset": "last_3_months"}, "include_current_month": True},
+        FakeSeriesCatalog(),
+        date(2026, 10, 25),
+    )
+    net = next(s for s in spec.series if s.id == "net")
+
+    assert [(p.x, p.partial) for p in net.points] == [
+        ("2026-07-01", False),
+        ("2026-08-01", False),
+        ("2026-09-01", False),
+        ("2026-10-01", True),
+    ]
+    assert spec.table.rows[-1][0] == "Oct 2026 (MTD)"

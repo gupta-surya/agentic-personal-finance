@@ -191,6 +191,11 @@
           "default": null,
           "title": "Low"
         },
+        "partial": {
+          "default": false,
+          "title": "Partial",
+          "type": "boolean"
+        },
         "x": {
           "title": "X",
           "type": "string"

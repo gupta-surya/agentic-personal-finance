@@ -42,6 +42,7 @@ class Point(_Frozen):
     y: Money | None = None
     low: Money | None = None
     high: Money | None = None
+    partial: bool = False  # a month-to-date bucket; renderers draw it dashed
 
 
 class Series(_Frozen):
