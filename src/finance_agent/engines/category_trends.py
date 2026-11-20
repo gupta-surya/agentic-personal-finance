@@ -19,7 +19,9 @@ class TrendRow(BaseModel):
     """One category over the window. ``monthly`` has one value per window month (a month with
     no spend is zero). ``average`` is per month, rounded to cents. ``change`` is the second
     half's total over the first's, minus one (``0.1234`` is +12.34%), or ``None`` when there is
-    nothing to compare (too few months, or the first half spent nothing)."""
+    nothing to compare (too few months, or the first half spent nothing). When ``partial`` is
+    set, the last ``monthly`` value is the month-to-date bucket: it is not part of the window,
+    so ``average``, ``minimum``, ``maximum``, ``direction`` and ``change`` ignore it."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -31,6 +33,7 @@ class TrendRow(BaseModel):
     maximum: Money
     direction: Direction
     change: Share | None
+    partial: bool = False
 
 
 def _direction(first: Decimal, second: Decimal) -> tuple[Direction, Share | None]:
@@ -48,11 +51,13 @@ def category_trends(
     source: QueryResult[MonthlyCategorySpendRow],
     months: list[date],
     only: Collection[str] | None = None,
+    partial_month: date | None = None,
 ) -> QueryResult[TrendRow]:
     """Trends for each category in ``source`` across ``months`` (oldest first).
 
     The halves are the first and last ``len(months) // 2`` months; with an odd window the
     middle month is left out of both. Refunds are already netted in the source's spend.
+    ``partial_month`` appends that month-to-date bucket after the window, for display only.
     ``only`` keeps just those named categories (never the folded bucket) and is recorded in
     the result's params, so the figures are traceable to this exact selection. Money is
     rounded half-even, as the catalog's shares are.
@@ -71,7 +76,8 @@ def category_trends(
     rows: list[TrendRow] = []
     # Alphabetical, with Uncategorized last and the folded bucket after it.
     for is_other, category in sorted(by_key, key=lambda k: (k[0], k[1] is None, k[1] or "")):
-        monthly = [by_key[(is_other, category)].get(m, Decimal(0)) for m in months]
+        cells = by_key[(is_other, category)]
+        monthly = [cells.get(m, Decimal(0)) for m in months]
         if len(months) < MIN_MONTHS:
             direction, change = "insufficient_data", None
         else:
@@ -82,7 +88,9 @@ def category_trends(
             TrendRow(
                 category=category,
                 is_other=is_other,
-                monthly=monthly,
+                monthly=[*monthly, cells.get(partial_month, Decimal(0))]
+                if partial_month
+                else monthly,
                 average=(sum(monthly, Decimal(0)) / len(months)).quantize(
                     Decimal("0.01"), rounding=ROUND_HALF_EVEN
                 ),
@@ -90,6 +98,7 @@ def category_trends(
                 maximum=max(monthly),
                 direction=direction,
                 change=change,
+                partial=partial_month is not None,
             )
         )
 
@@ -99,6 +108,7 @@ def category_trends(
             **source.params,
             "source_result_id": source.result_id,
             "months": [m.isoformat() for m in months],
+            **({"partial_month": partial_month.isoformat()} if partial_month else {}),
             **({"categories": sorted(only)} if only is not None else {}),
         },
         result_id=f"category_trends:{source.result_id}",

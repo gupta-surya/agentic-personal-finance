@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from finance_agent.charts.period import Period, ResolvedPeriod, resolve_period
+from finance_agent.charts.period import Period, ResolvedPeriod, resolve_period, with_current_month
 from finance_agent.charts.spec import Source
 from finance_agent.queries.result import QueryResult
 from finance_agent.queries.series import SeriesCatalog
@@ -52,6 +52,17 @@ def month_label(day: date) -> str:
     return f"{_MONTHS[day.month - 1]} {day.year}"
 
 
+def mtd_label(day: date, partial: bool) -> str:
+    """``"Oct 2026 (MTD)"`` for the month-to-date bucket, else the plain month label."""
+    return f"{month_label(day)} (MTD)" if partial else month_label(day)
+
+
+def partial_month(period: ResolvedPeriod, today: date, include: bool) -> date | None:
+    """First of the current month when ``include`` asks for it and the window holds it."""
+    first = today.replace(day=1)
+    return first if include and period.start <= first < period.end else None
+
+
 def span_label(first: date, last: date) -> str:
     """``"Mar 2026"`` for one month, ``"Apr 2026 – Sep 2026"`` for a range."""
     if (first.year, first.month) == (last.year, last.month):
@@ -84,7 +95,11 @@ def source_of(result: QueryResult[Any]) -> Source:
     )
 
 
-def resolve(period: Period, today: date, catalog: SeriesCatalog) -> ResolvedPeriod:
+def resolve(
+    period: Period, today: date, catalog: SeriesCatalog, include_current_month: bool = False
+) -> ResolvedPeriod:
     """Resolve a period. ``all_time`` starts at the catalog's earliest date: a method both
-    catalogs have that is not part of the ``SeriesCatalog`` protocol."""
-    return resolve_period(period, today, getattr(catalog, "earliest_date", None))
+    catalogs have that is not part of the ``SeriesCatalog`` protocol. With
+    ``include_current_month`` the window also runs through today (the month-to-date bucket)."""
+    resolved = resolve_period(period, today, getattr(catalog, "earliest_date", None))
+    return with_current_month(resolved, today) if include_current_month else resolved
