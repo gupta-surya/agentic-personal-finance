@@ -21,6 +21,7 @@ from finance_agent.charts.api import create_app
 from finance_agent.charts.fake_catalog import fake_session
 from finance_agent.charts.postgres import check_database_url, postgres_session
 from finance_agent.charts.templates import default_registry
+from finance_agent.local_guard import harden
 
 
 def local_today() -> date:
@@ -43,4 +44,4 @@ def build_app() -> FastAPI:
     )
 
 
-app = build_app()
+app = harden(build_app())  # any loopback port: uvicorn picks it, so we can't know it here
