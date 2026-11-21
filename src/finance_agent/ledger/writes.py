@@ -2,7 +2,6 @@
 user-decided, which re-syncs never overwrite); the only SQL here touches the user-owned columns
 ``note``, ``hidden`` and ``display_name``. Each call is one database transaction."""
 
-from datetime import UTC, datetime
 from typing import Literal
 
 from finance_agent.categorize.actions import correct_categories, save_rule
@@ -38,9 +37,9 @@ def _set_flags(
         params.append(hidden)
     if sets:  # last_changed_at moves so data_version (and cached figures) notice
         conn.execute(
-            f"UPDATE transactions SET {', '.join(sets)}, last_changed_at = %s "
+            f"UPDATE transactions SET {', '.join(sets)}, last_changed_at = now() "
             "WHERE tenant_id = %s AND id = ANY(%s)",
-            (*params, datetime.now(UTC), tenant_id, ids),
+            (*params, tenant_id, ids),
         )
 
 
