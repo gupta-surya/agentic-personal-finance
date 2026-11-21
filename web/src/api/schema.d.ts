@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Patch Account */
+        patch: operations["patch_account_api_accounts__account_id__patch"];
+        trace?: never;
+    };
     "/api/accounts/{account_id}/summary": {
         parameters: {
             query?: never;
@@ -32,6 +49,23 @@ export interface paths {
         get: operations["account_summary_api_accounts__account_id__summary_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rules */
+        post: operations["rules_api_rules_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -55,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/transactions/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk */
+        post: operations["bulk_api_transactions_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/transactions/{txn_id}": {
         parameters: {
             query?: never;
@@ -66,6 +117,41 @@ export interface paths {
         get: operations["transaction_api_transactions__txn_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Patch Transaction */
+        patch: operations["patch_transaction_api_transactions__txn_id__patch"];
+        trace?: never;
+    };
+    "/api/transactions/{txn_id}/accept-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Suggestion */
+        post: operations["accept_suggestion_api_transactions__txn_id__accept_suggestion_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/transactions/{txn_id}/transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transfer */
+        post: operations["transfer_api_transactions__txn_id__transfer_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -129,6 +215,15 @@ export interface components {
             /** Groups */
             groups: components["schemas"]["AccountGroup"][];
             summary: components["schemas"]["AccountsSummary"];
+        };
+        /** AccountPatch */
+        AccountPatch: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Hidden */
+            hidden?: boolean | null;
+            /** Role */
+            role?: ("on_budget" | "credit" | "loan" | "investment") | null;
         };
         /** AccountPeriodSummary */
         AccountPeriodSummary: {
@@ -271,6 +366,15 @@ export interface components {
             as_of: string;
             /** Balance */
             balance: string;
+        };
+        /** BulkEdit */
+        BulkEdit: {
+            /** Category */
+            category?: string | null;
+            /** Hidden */
+            hidden?: boolean | null;
+            /** Ids */
+            ids: number[];
         };
         /** CardPayment */
         CardPayment: {
@@ -424,6 +528,25 @@ export interface components {
              */
             start: string;
         };
+        /** RuleRequest */
+        RuleRequest: {
+            /**
+             * Apply To Existing
+             * @default false
+             */
+            apply_to_existing: boolean;
+            /** Category */
+            category: string;
+            /** Merchant */
+            merchant: string;
+        };
+        /** RuleResult */
+        RuleResult: {
+            /** Count */
+            count: number;
+            /** Preview */
+            preview: boolean;
+        };
         /** Series */
         Series: {
             /** Id */
@@ -495,6 +618,15 @@ export interface components {
             rows: components["schemas"]["TransactionRow"][];
             totals: components["schemas"]["TransactionTotals"];
         };
+        /** TransactionPatch */
+        TransactionPatch: {
+            /** Category */
+            category?: string | null;
+            /** Hidden */
+            hidden?: boolean | null;
+            /** Note */
+            note?: string | null;
+        };
         /** TransactionRow */
         TransactionRow: {
             account: components["schemas"]["AccountRef"];
@@ -563,6 +695,21 @@ export interface components {
             kind: "internal" | "card_payment";
             other_leg: components["schemas"]["OtherLeg"] | null;
         };
+        /** TransferRequest */
+        TransferRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "not_transfer" | "link";
+            /** Other Id */
+            other_id?: number | null;
+        };
+        /** Updated */
+        Updated: {
+            /** Updated */
+            updated: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -595,6 +742,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_account_api_accounts__account_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountPatch"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -651,6 +833,41 @@ export interface operations {
             };
         };
     };
+    rules_api_rules_post: {
+        parameters: {
+            query?: {
+                preview?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     transactions_api_transactions_get: {
         parameters: {
             query?: {
@@ -694,6 +911,39 @@ export interface operations {
             };
         };
     };
+    bulk_api_transactions_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Updated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     transaction_api_transactions__txn_id__get: {
         parameters: {
             query?: never;
@@ -704,6 +954,107 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_transaction_api_transactions__txn_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                txn_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_suggestion_api_transactions__txn_id__accept_suggestion_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                txn_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transfer_api_transactions__txn_id__transfer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                txn_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

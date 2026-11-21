@@ -47,3 +47,14 @@ def read_connection(url: str) -> Iterator[Connection]:
             yield conn
     except (psycopg.OperationalError, psycopg.InterfaceError):
         raise CatalogUnavailable from None
+
+
+@contextmanager
+def write_connection(url: str) -> Iterator[Connection]:
+    """A read-write connection for the ledger's user decisions: committed when the request
+    succeeds, rolled back when it fails. Point the URL at a role limited to these tables."""
+    try:
+        with psycopg.connect(url) as conn:
+            yield conn
+    except (psycopg.OperationalError, psycopg.InterfaceError):
+        raise CatalogUnavailable from None

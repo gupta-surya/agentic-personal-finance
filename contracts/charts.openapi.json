@@ -58,6 +58,53 @@
         "title": "AccountList",
         "type": "object"
       },
+      "AccountPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "on_budget",
+                  "credit",
+                  "loan",
+                  "investment"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "title": "AccountPatch",
+        "type": "object"
+      },
       "AccountPeriodSummary": {
         "properties": {
           "account_id": {
@@ -454,6 +501,47 @@
         "title": "BalancePoint",
         "type": "object"
       },
+      "BulkEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          },
+          "ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "title": "BulkEdit",
+        "type": "object"
+      },
       "CardPayment": {
         "properties": {
           "amount": {
@@ -835,6 +923,50 @@
         "title": "ResolvedPeriod",
         "type": "object"
       },
+      "RuleRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "apply_to_existing": {
+            "default": false,
+            "title": "Apply To Existing",
+            "type": "boolean"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "merchant": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Merchant",
+            "type": "string"
+          }
+        },
+        "required": [
+          "merchant",
+          "category"
+        ],
+        "title": "RuleRequest",
+        "type": "object"
+      },
+      "RuleResult": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "count",
+          "preview"
+        ],
+        "title": "RuleResult",
+        "type": "object"
+      },
       "Series": {
         "properties": {
           "id": {
@@ -1025,6 +1157,46 @@
           "totals"
         ],
         "title": "TransactionPage",
+        "type": "object"
+      },
+      "TransactionPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "TransactionPatch",
         "type": "object"
       },
       "TransactionRow": {
@@ -1250,6 +1422,48 @@
         "title": "TransferInfo",
         "type": "object"
       },
+      "TransferRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "not_transfer",
+              "link"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "other_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Id"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "TransferRequest",
+        "type": "object"
+      },
+      "Updated": {
+        "properties": {
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "updated"
+        ],
+        "title": "Updated",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1338,6 +1552,55 @@
         "summary": "Accounts"
       }
     },
+    "/api/accounts/{account_id}": {
+      "patch": {
+        "operationId": "patch_account_api_accounts__account_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Account"
+      }
+    },
     "/api/accounts/{account_id}/summary": {
       "get": {
         "operationId": "account_summary_api_accounts__account_id__summary_get",
@@ -1418,6 +1681,56 @@
           }
         },
         "summary": "Account Summary"
+      }
+    },
+    "/api/rules": {
+      "post": {
+        "operationId": "rules_api_rules_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "preview",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Preview",
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rules"
       }
     },
     "/api/transactions": {
@@ -1665,6 +1978,44 @@
         "summary": "Transactions"
       }
     },
+    "/api/transactions/bulk": {
+      "post": {
+        "operationId": "bulk_api_transactions_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkEdit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Updated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bulk"
+      }
+    },
     "/api/transactions/{txn_id}": {
       "get": {
         "operationId": "transaction_api_transactions__txn_id__get",
@@ -1702,6 +2053,139 @@
           }
         },
         "summary": "Transaction"
+      },
+      "patch": {
+        "operationId": "patch_transaction_api_transactions__txn_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "txn_id",
+            "required": true,
+            "schema": {
+              "title": "Txn Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Transaction"
+      }
+    },
+    "/api/transactions/{txn_id}/accept-suggestion": {
+      "post": {
+        "operationId": "accept_suggestion_api_transactions__txn_id__accept_suggestion_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "txn_id",
+            "required": true,
+            "schema": {
+              "title": "Txn Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Suggestion"
+      }
+    },
+    "/api/transactions/{txn_id}/transfer": {
+      "post": {
+        "operationId": "transfer_api_transactions__txn_id__transfer_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "txn_id",
+            "required": true,
+            "schema": {
+              "title": "Txn Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transfer"
       }
     },
     "/charts/meta": {

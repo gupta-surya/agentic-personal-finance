@@ -37,6 +37,32 @@ def _upsert_user_rule(conn: Connection, tenant_id: str, key: str, category: str)
     )
 
 
+def _set_user_category(conn: Connection, tenant_id: str, txn_id: int, category: str) -> None:
+    """The row and its merchant rule, without re-running the engine (callers do that once)."""
+    row = conn.execute(
+        "SELECT description, is_internal_transfer FROM transactions "
+        "WHERE tenant_id = %s AND id = %s",
+        (tenant_id, txn_id),
+    ).fetchone()
+    if row is None:
+        raise LookupError(f"no transaction {txn_id} for tenant {tenant_id!r}")
+    if row[1]:
+        raise ValueError(f"transaction {txn_id} is an internal transfer; it has no category")
+    key = normalize_merchant(row[0])
+    conn.execute(
+        """
+        UPDATE transactions
+        SET category = %s, category_source = 'user', merchant_normalized = %s
+        WHERE tenant_id = %s AND id = %s
+          AND (category, category_source, merchant_normalized)
+              IS DISTINCT FROM (%s, 'user', %s)
+        """,
+        (category, key or None, tenant_id, txn_id, category, key or None),
+    )
+    if key:
+        _upsert_user_rule(conn, tenant_id, key, category)
+
+
 def correct_category(conn: Connection, tenant_id: str, txn_id: int, category: str) -> None:
     """The user says this transaction is ``category``.
 
@@ -46,32 +72,42 @@ def correct_category(conn: Connection, tenant_id: str, txn_id: int, category: st
     set. Works on pending rows too. Internal-transfer legs cannot be categorized (they must
     never count as spend), so correcting one raises ``ValueError``.
     """
+    correct_categories(conn, tenant_id, [txn_id], category)
+
+
+def correct_categories(conn: Connection, tenant_id: str, txn_ids: list[int], category: str) -> None:
+    """``correct_category`` for several rows in one database transaction (all or nothing),
+    with the engine run once at the end."""
     with conn.transaction():
         lock_categorization(conn, tenant_id)
         _require_category(conn, tenant_id, category)
-        row = conn.execute(
-            "SELECT description, is_internal_transfer FROM transactions "
-            "WHERE tenant_id = %s AND id = %s",
-            (tenant_id, txn_id),
-        ).fetchone()
-        if row is None:
-            raise LookupError(f"no transaction {txn_id} for tenant {tenant_id!r}")
-        if row[1]:
-            raise ValueError(f"transaction {txn_id} is an internal transfer; it has no category")
-        key = normalize_merchant(row[0])
-        conn.execute(
-            """
-            UPDATE transactions
-            SET category = %s, category_source = 'user', merchant_normalized = %s
-            WHERE tenant_id = %s AND id = %s
-              AND (category, category_source, merchant_normalized)
-                  IS DISTINCT FROM (%s, 'user', %s)
-            """,
-            (category, key or None, tenant_id, txn_id, category, key or None),
-        )
-        if key:
-            _upsert_user_rule(conn, tenant_id, key, category)
+        for txn_id in dict.fromkeys(txn_ids):
+            _set_user_category(conn, tenant_id, txn_id, category)
         categorize(conn, tenant_id)
+
+
+def save_rule(
+    conn: Connection,
+    tenant_id: str,
+    merchant: str,
+    category: str,
+    apply_to_existing: bool = True,
+    dry_run: bool = False,
+) -> int:
+    """Write a ``user`` rule for ``merchant``. With ``apply_to_existing`` the engine re-runs so
+    matching rows follow (never rows the user set); returns how many rows that changed. With
+    ``dry_run`` everything is rolled back and only the count is returned."""
+    with conn.transaction(force_rollback=dry_run):
+        lock_categorization(conn, tenant_id)
+        key = normalize_merchant(merchant)
+        if not key:
+            raise ValueError(f"{merchant!r} does not name a merchant")
+        _require_category(conn, tenant_id, category)
+        _upsert_user_rule(conn, tenant_id, key, category)
+        if not apply_to_existing:
+            return 0
+        result = categorize(conn, tenant_id)
+        return result.assigned + result.changed
 
 
 def set_rule(conn: Connection, tenant_id: str, merchant: str, category: str) -> None:
@@ -80,14 +116,7 @@ def set_rule(conn: Connection, tenant_id: str, merchant: str, category: str) -> 
     ``merchant`` is normalized first, so a raw statement name works. The engine re-runs so
     existing rows follow.
     """
-    with conn.transaction():
-        lock_categorization(conn, tenant_id)
-        key = normalize_merchant(merchant)
-        if not key:
-            raise ValueError(f"{merchant!r} does not name a merchant")
-        _require_category(conn, tenant_id, category)
-        _upsert_user_rule(conn, tenant_id, key, category)
-        categorize(conn, tenant_id)
+    save_rule(conn, tenant_id, merchant, category)
 
 
 def delete_rule(conn: Connection, tenant_id: str, merchant: str) -> None:
