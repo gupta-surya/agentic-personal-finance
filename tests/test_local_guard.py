@@ -109,3 +109,14 @@ def test_serve_refuses_lan_bind_without_the_flag(tmp_path: Any) -> None:
         server=fake_server,
     )
     assert code == 0 and called
+
+
+def test_serve_hardens_the_app_it_runs(tmp_path: Any) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_server(app: Any, host: str, port: int) -> None:
+        captured["app"] = app
+
+    run_serve(_ctx(tmp_path, None), synthetic=True, port=8123, server=fake_server, console=None)
+    client = TestClient(captured["app"], base_url=BASE)
+    assert client.get("/charts/meta", headers={"Host": "evil.example"}).status_code == 421
