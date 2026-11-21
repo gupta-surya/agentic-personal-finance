@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/api/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accounts */
+        get: operations["accounts_api_accounts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{account_id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Account Summary */
+        get: operations["account_summary_api_accounts__account_id__summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Transactions */
+        get: operations["transactions_api_transactions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/transactions/{txn_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Transaction */
+        get: operations["transaction_api_transactions__txn_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/charts/meta": {
         parameters: {
             query?: never;
@@ -42,6 +110,124 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountGroup */
+        AccountGroup: {
+            /** Accounts */
+            accounts: components["schemas"]["AccountRow"][];
+            /** Label */
+            label: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "on_budget" | "credit" | "loan" | "investment";
+            /** Total */
+            total: string;
+        };
+        /** AccountList */
+        AccountList: {
+            /** Groups */
+            groups: components["schemas"]["AccountGroup"][];
+            summary: components["schemas"]["AccountsSummary"];
+        };
+        /** AccountPeriodSummary */
+        AccountPeriodSummary: {
+            /** Account Id */
+            account_id: number;
+            /** Balance History */
+            balance_history: components["schemas"]["BalancePoint"][];
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            last_card_payment: components["schemas"]["CardPayment"] | null;
+            /** Needs Review Count */
+            needs_review_count: number;
+            /** Result Id */
+            result_id: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Transaction Count */
+            transaction_count: number;
+        };
+        /** AccountRef */
+        AccountRef: {
+            /** Id */
+            id: number;
+            /** Institution */
+            institution: string;
+            /** Mask */
+            mask: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "on_budget" | "credit" | "loan" | "investment";
+        };
+        /** AccountRow */
+        AccountRow: {
+            /** Available Balance */
+            available_balance: string | null;
+            /** Balance */
+            balance: string;
+            /** Balance As Of */
+            balance_as_of: string | null;
+            /** Closed */
+            closed: boolean;
+            /** Currency */
+            currency: string;
+            /** Display Name */
+            display_name: string | null;
+            /** Hidden */
+            hidden: boolean;
+            /** Id */
+            id: number;
+            /** Institution */
+            institution: string;
+            /** Last Sync At */
+            last_sync_at: string | null;
+            /** Mask */
+            mask: string | null;
+            /** Month Spend */
+            month_spend: string;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "on_budget" | "credit" | "loan" | "investment";
+            /**
+             * Role Source
+             * @enum {string}
+             */
+            role_source: "rule" | "user";
+            /** Source */
+            source: string;
+            /** Stale */
+            stale: boolean;
+        };
+        /** AccountsSummary */
+        AccountsSummary: {
+            /** Cash */
+            cash: string;
+            /** Cash After Cards */
+            cash_after_cards: string;
+            /** Credit Owed */
+            credit_owed: string;
+            /** Currency */
+            currency: string;
+            /** Net Worth */
+            net_worth: string;
+            /** Result Id */
+            result_id: string;
+        };
         /** Annotation */
         Annotation: {
             /**
@@ -75,6 +261,27 @@ export interface components {
             source: "question" | "you_entered" | "default" | "data";
             /** Value */
             value: string;
+        };
+        /** BalancePoint */
+        BalancePoint: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /** Balance */
+            balance: string;
+        };
+        /** CardPayment */
+        CardPayment: {
+            /** Amount */
+            amount: string;
+            /** Id */
+            id: number;
+            /** Other Account Name */
+            other_account_name: string;
+            /** Posted Date */
+            posted_date: string | null;
         };
         /** ChartSpec */
         ChartSpec: {
@@ -134,6 +341,36 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         JsonValue: unknown;
+        /** MerchantHistory */
+        MerchantHistory: {
+            /** Monthly */
+            monthly: components["schemas"]["MonthAmount"][];
+            /** Result Id */
+            result_id: string;
+            /** Total 12M */
+            total_12m: string;
+            /** Visits 12M */
+            visits_12m: number;
+        };
+        /** MonthAmount */
+        MonthAmount: {
+            /** Amount */
+            amount: string;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+        };
+        /** OtherLeg */
+        OtherLeg: {
+            /** Account Name */
+            account_name: string;
+            /** Id */
+            id: number;
+            /** Posted Date */
+            posted_date: string | null;
+        };
         /**
          * PeriodPreset
          * @enum {string}
@@ -245,6 +482,87 @@ export interface components {
             /** Rows */
             rows: (string | null)[][];
         };
+        /** TransactionDetail */
+        TransactionDetail: {
+            merchant_history: components["schemas"]["MerchantHistory"] | null;
+            transaction: components["schemas"]["TransactionRow"];
+        };
+        /** TransactionPage */
+        TransactionPage: {
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Rows */
+            rows: components["schemas"]["TransactionRow"][];
+            totals: components["schemas"]["TransactionTotals"];
+        };
+        /** TransactionRow */
+        TransactionRow: {
+            account: components["schemas"]["AccountRef"];
+            /** Amount */
+            amount: string;
+            /** Category */
+            category: string | null;
+            /** Category Source */
+            category_source: ("rule" | "model" | "user") | null;
+            /** Currency */
+            currency: string;
+            /** Description */
+            description: string;
+            /** Hidden */
+            hidden: boolean;
+            /** Id */
+            id: number;
+            /** Merchant */
+            merchant: string;
+            /** Needs Review */
+            needs_review: boolean;
+            /** Note */
+            note: string | null;
+            /** Pending */
+            pending: boolean;
+            /** Posted Date */
+            posted_date: string | null;
+            /** Suggested Category */
+            suggested_category: string | null;
+            /** Transacted Date */
+            transacted_date: string | null;
+            transfer: components["schemas"]["TransferInfo"] | null;
+        };
+        /**
+         * TransactionTotals
+         * @description Same row filter as the catalog (posted, no internal transfers, no hidden rows, cash and
+         *     credit accounts, one currency), so these equal Home's Spent and Income for the same window.
+         */
+        TransactionTotals: {
+            /** Count */
+            count: number;
+            /** Currency */
+            currency: string;
+            /** Money In */
+            money_in: string;
+            /** Money Out */
+            money_out: string;
+            /** Result Id */
+            result_id: string;
+            /** Transfers Excluded */
+            transfers_excluded: number;
+        };
+        /** TransferInfo */
+        TransferInfo: {
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "high" | "low";
+            /** Group Id */
+            group_id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "internal" | "card_payment";
+            other_leg: components["schemas"]["OtherLeg"] | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -267,6 +585,146 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    accounts_api_accounts_get: {
+        parameters: {
+            query?: {
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    account_summary_api_accounts__account_id__summary_get: {
+        parameters: {
+            query?: {
+                preset?: components["schemas"]["PeriodPreset"];
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountPeriodSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transactions_api_transactions_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                account_id?: number[] | null;
+                category?: string[] | null;
+                q?: string | null;
+                min_amount?: number | string | null;
+                max_amount?: number | string | null;
+                status?: ("needs_review" | "pending" | "transfer" | "hidden")[] | null;
+                include_transfers?: boolean;
+                sort?: "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
+                limit?: number;
+                cursor?: string | null;
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transaction_api_transactions__txn_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                txn_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     meta_charts_meta_get: {
         parameters: {
             query?: never;

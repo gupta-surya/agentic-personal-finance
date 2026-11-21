@@ -23,6 +23,7 @@ ZERO_ROW = (date(2027, 1, 1), date(2027, 2, 1))  # a month with only a zero-amou
 UNCAT = (date(2027, 2, 1), date(2027, 3, 1))  # uncategorized outranks a named category
 HALF = (date(2027, 3, 1), date(2027, 4, 1))  # shares on a rounding half boundary
 MONTH_END = (date(2027, 4, 1), date(2027, 6, 1))  # April 30 and May 1 land in different months
+HIDDEN_ONLY = (date(2027, 6, 1), date(2027, 7, 1))  # a month holding only hidden rows
 
 RANGES = {
     "full": FULL,
@@ -41,6 +42,7 @@ RANGES = {
     "uncat": UNCAT,
     "half": HALF,
     "month_end": MONTH_END,
+    "hidden_only": HIDDEN_ONLY,
 }
 
 

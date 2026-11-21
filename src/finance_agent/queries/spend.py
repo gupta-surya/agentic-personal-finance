@@ -24,6 +24,7 @@ def spend_by_category(
         WHERE t.tenant_id = %s
           AND t.category = %s
           AND NOT t.pending
+          AND NOT t.hidden
           AND a.currency = %s
           AND a.currency_kind = 'iso'
           AND t.posted_date >= %s

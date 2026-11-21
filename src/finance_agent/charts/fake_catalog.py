@@ -3,7 +3,7 @@ without a database.
 
 It plays the part Postgres plays in production, so it follows the catalog
 conventions in ``queries/series.py``: ``end`` exclusive, rows bucketed by calendar
-month of ``posted_date``, pending and internal-transfer rows excluded, one currency
+month of ``posted_date``, pending, hidden and internal-transfer rows excluded, one currency
 per call, empty months omitted, rows ordered by month then category (uncategorized
 last). Data is built from fixed formulas, never random, and ``result_id`` comes from
 a per-instance counter, so the same calls always yield identical results.
@@ -41,6 +41,7 @@ class SyntheticTransaction:
     currency: str = "USD"
     pending: bool = False
     internal_transfer: bool = False
+    hidden: bool = False
 
 
 def synthetic_transactions() -> list[SyntheticTransaction]:
@@ -108,6 +109,7 @@ class FakeSeriesCatalog:
             for t in self._txns
             if not t.pending
             and not t.internal_transfer
+            and not t.hidden
             and (currency is None or t.currency == currency)
         ]
         return min(posted) if posted else None
@@ -124,6 +126,7 @@ class FakeSeriesCatalog:
             and t.currency == currency
             and not t.pending
             and not t.internal_transfer
+            and not t.hidden
         ]
 
     def _range_spend(self, start: date, end: date, currency: str) -> dict[str | None, Decimal]:

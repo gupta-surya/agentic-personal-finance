@@ -82,6 +82,8 @@ CREATE TABLE accounts (
         CHECK (role IN ('on_budget', 'credit', 'loan', 'investment')),
     role_source       TEXT        NOT NULL CHECK (role_source IN ('rule', 'user')),
     closed            BOOLEAN     NOT NULL,
+    display_name      TEXT,                       -- the user's own label; name stays the bank's
+    hidden            BOOLEAN     NOT NULL DEFAULT false,
     PRIMARY KEY (tenant_id, id),
     UNIQUE (tenant_id, connection_id, external_id),
     FOREIGN KEY (tenant_id, connection_id) REFERENCES connections (tenant_id, id)
@@ -173,6 +175,9 @@ CREATE TABLE transactions (
     first_seen_at         TIMESTAMPTZ NOT NULL,
     last_changed_at       TIMESTAMPTZ NOT NULL,
     missing_since         TIMESTAMPTZ,
+    note                  TEXT,
+    -- hidden rows are excluded from every catalog aggregate (and shown only on request)
+    hidden                BOOLEAN NOT NULL DEFAULT false,
     PRIMARY KEY (tenant_id, id),
     UNIQUE (tenant_id, account_id, external_id),
     CHECK (posted_date IS NOT NULL OR pending),
@@ -183,6 +188,20 @@ CREATE TABLE transactions (
 );
 
 CREATE INDEX transactions_transfer_group_idx ON transactions (tenant_id, transfer_group_id);
+CREATE INDEX transactions_posted_idx ON transactions (tenant_id, posted_date DESC, id DESC);
+CREATE INDEX transactions_merchant_trgm_idx
+    ON transactions USING gin (merchant_normalized gin_trgm_ops);
+
+-- One row per sync per account whose balance changed: the balance history.
+CREATE TABLE account_balances (
+    tenant_id         TEXT        NOT NULL,
+    account_id        BIGINT      NOT NULL,
+    as_of             TIMESTAMPTZ NOT NULL,
+    balance           NUMERIC     NOT NULL,
+    available_balance NUMERIC,
+    PRIMARY KEY (tenant_id, account_id, as_of),
+    FOREIGN KEY (tenant_id, account_id) REFERENCES accounts (tenant_id, id)
+);
 
 -- Credentials zone: encrypted bank access URLs, isolated from the data tables.
 -- tenant_id-scoped, ciphertext only, with no foreign key into connections/accounts.

@@ -8,12 +8,13 @@ the frontend cannot drift from the Python types. Money fields are JSON strings.
 
 import json
 from datetime import date
-from typing import Any
+from typing import Any, NoReturn
 
 from finance_agent.charts.api import create_app
 from finance_agent.charts.fake_catalog import fake_session
 from finance_agent.charts.registry import TemplateRegistry
 from finance_agent.charts.spec import ChartSpec
+from finance_agent.ledger.api import ledger_router
 from finance_agent.queries.contract_export import CONTRACTS_DIR
 
 SCHEMA_FILE = "chart_spec.schema.json"
@@ -25,8 +26,12 @@ def schema() -> dict[str, Any]:
 
 
 def openapi() -> dict[str, Any]:
-    app = create_app(TemplateRegistry(), fake_session, lambda: date(2026, 1, 1))
-    return app.openapi()
+    def no_database() -> NoReturn:  # the schema is built without ever opening a connection
+        raise AssertionError("contract export opened a connection")
+
+    today = lambda: date(2026, 1, 1)  # noqa: E731
+    ledger = ledger_router(no_database, "tenant", today)
+    return create_app(TemplateRegistry(), fake_session, today, ledger=ledger).openapi()
 
 
 def render() -> str:

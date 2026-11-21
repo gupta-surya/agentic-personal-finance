@@ -56,6 +56,7 @@ def load_batch(conn: Connection, tenant_id: str, raw_pull_id: int, batch: Normal
 
         connection_ids = _upsert_connections(conn, tenant_id, batch, fetched_at)
         account_ids = _upsert_accounts(conn, tenant_id, batch, connection_ids)
+        _record_balances(conn, tenant_id, batch, account_ids, fetched_at)
         _record_errors(conn, tenant_id, raw_pull_id, batch, connection_ids)
         _upsert_transactions(conn, tenant_id, batch, account_ids, known, fetched_at)
         _flag_missing_pending(conn, tenant_id, batch, account_ids, fetched_at)
@@ -167,6 +168,44 @@ def _upsert_accounts(
     for connection_id, external_id, account_id in rows:
         ids[(by_connection[connection_id], external_id)] = int(account_id)
     return ids
+
+
+def _record_balances(
+    conn: Connection,
+    tenant_id: str,
+    batch: NormalizedBatch,
+    account_ids: dict[tuple[str, str], int],
+    fetched_at: datetime,
+) -> None:
+    """One history row per sync per account, skipped when the latest row already says the same
+    (a same-day re-sync with no change adds nothing)."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            """
+            INSERT INTO account_balances (tenant_id, account_id, as_of, balance, available_balance)
+            SELECT %(t)s, %(a)s, %(as_of)s, %(bal)s, %(avail)s
+            WHERE NOT EXISTS (
+                SELECT 1 FROM (
+                    SELECT balance, available_balance FROM account_balances
+                    WHERE tenant_id = %(t)s AND account_id = %(a)s
+                    ORDER BY as_of DESC LIMIT 1
+                ) latest
+                WHERE (latest.balance, latest.available_balance)
+                    IS NOT DISTINCT FROM (%(bal)s::numeric, %(avail)s::numeric)
+            )
+            ON CONFLICT DO NOTHING
+            """,
+            [
+                {
+                    "t": tenant_id,
+                    "a": account_ids[(a.connection_key, a.external_id)],
+                    "as_of": a.balance_as_of or fetched_at,
+                    "bal": a.balance,
+                    "avail": a.available_balance,
+                }
+                for a in batch.accounts
+            ],
+        )
 
 
 def _record_errors(

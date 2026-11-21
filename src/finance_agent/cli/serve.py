@@ -10,6 +10,7 @@ from datetime import date, datetime
 from functools import partial
 from typing import Any, Literal
 
+from fastapi import APIRouter
 from rich.console import Console
 
 from finance_agent.cli.context import AppContext
@@ -41,6 +42,7 @@ def build_server_app(ctx: AppContext, *, synthetic: bool, agent: bool = False) -
     registry = default_registry()
     today = partial(_today, synthetic)
     source: Literal["synthetic", "postgres"]
+    ledger: APIRouter | None = None  # row-level endpoints exist only over a real database
     if synthetic:
         from finance_agent.charts.fake_catalog import fake_session
 
@@ -50,14 +52,20 @@ def build_server_app(ctx: AppContext, *, synthetic: bool, agent: bool = False) -
         url = ctx.database_url()
         if url is None:
             raise RuntimeError("not set up yet; run `finance setup` first")
-        from finance_agent.charts.postgres import check_database_url, postgres_session
+        from finance_agent.charts.postgres import (
+            check_database_url,
+            postgres_session,
+            read_connection,
+        )
+        from finance_agent.ledger.api import ledger_router
 
         check_database_url(url)
         session = partial(postgres_session, url, ctx.tenant_id)
         source = "postgres"
+        ledger = ledger_router(partial(read_connection, url), ctx.tenant_id, today)
 
     if not agent:
-        return create_app(registry, session, today, source=source)
+        return create_app(registry, session, today, source=source, ledger=ledger)
 
     from finance_agent.agent.api import create_agent_app
     from finance_agent.agent.plan import GatewayPlanner
@@ -65,7 +73,9 @@ def build_server_app(ctx: AppContext, *, synthetic: bool, agent: bool = False) -
     from finance_agent.model_gateway.config import ModelConfig
 
     gateway = ModelGateway(ModelConfig.from_env())
-    return create_agent_app(registry, session, today, GatewayPlanner(gateway), source=source)
+    return create_agent_app(
+        registry, session, today, GatewayPlanner(gateway), source=source, ledger=ledger
+    )
 
 
 def run_serve(
