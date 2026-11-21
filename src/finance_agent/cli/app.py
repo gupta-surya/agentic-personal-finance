@@ -22,6 +22,7 @@ _SYNTHETIC = typer.Option(False, "--synthetic", help="Serve synthetic sample dat
 _AGENT = typer.Option(False, "--agent", help="Also serve /ask (needs Ollama).")
 _HOST = typer.Option("127.0.0.1", "--host", help="Bind host.")
 _PORT = typer.Option(8000, "--port", help="Bind port.")
+_LAN = typer.Option(False, "--i-understand-lan", help="Allow binding beyond 127.0.0.1.")
 
 
 @app.command()
@@ -52,11 +53,22 @@ def review(yes: bool = _LIST_ONLY) -> None:
 
 @app.command()
 def serve(
-    synthetic: bool = _SYNTHETIC, agent: bool = _AGENT, host: str = _HOST, port: int = _PORT
+    synthetic: bool = _SYNTHETIC,
+    agent: bool = _AGENT,
+    host: str = _HOST,
+    port: int = _PORT,
+    i_understand_lan: bool = _LAN,
 ) -> None:
     """Run the local charts API (your data, or --synthetic). Pair with `cd web && npm run dev`."""
     raise typer.Exit(
-        run_serve(default_context(), host=host, port=port, synthetic=synthetic, agent=agent)
+        run_serve(
+            default_context(),
+            host=host,
+            port=port,
+            synthetic=synthetic,
+            agent=agent,
+            i_understand_lan=i_understand_lan,
+        )
     )
 
 

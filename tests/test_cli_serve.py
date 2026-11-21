@@ -36,7 +36,7 @@ def test_serve_synthetic_builds_app_and_serves(tmp_path: Any) -> None:
     # It's the charts app: it exposes /charts/meta.
     from fastapi.testclient import TestClient
 
-    client = TestClient(captured["app"])
+    client = TestClient(captured["app"], base_url="http://127.0.0.1:8123")
     assert client.get("/charts/meta").json() == {"source": "synthetic"}
 
 
