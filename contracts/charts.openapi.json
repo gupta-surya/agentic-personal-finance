@@ -1,6 +1,346 @@
 {
   "components": {
     "schemas": {
+      "AccountGroup": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/AccountRow"
+            },
+            "title": "Accounts",
+            "type": "array"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "on_budget",
+              "credit",
+              "loan",
+              "investment"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "label",
+          "accounts",
+          "total"
+        ],
+        "title": "AccountGroup",
+        "type": "object"
+      },
+      "AccountList": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/AccountGroup"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/AccountsSummary"
+          }
+        },
+        "required": [
+          "groups",
+          "summary"
+        ],
+        "title": "AccountList",
+        "type": "object"
+      },
+      "AccountPeriodSummary": {
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "integer"
+          },
+          "balance_history": {
+            "items": {
+              "$ref": "#/components/schemas/BalancePoint"
+            },
+            "title": "Balance History",
+            "type": "array"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "last_card_payment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardPayment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "needs_review_count": {
+            "title": "Needs Review Count",
+            "type": "integer"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "string"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "transaction_count": {
+            "title": "Transaction Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "account_id",
+          "start",
+          "end",
+          "balance_history",
+          "transaction_count",
+          "needs_review_count",
+          "last_card_payment",
+          "result_id"
+        ],
+        "title": "AccountPeriodSummary",
+        "type": "object"
+      },
+      "AccountRef": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "institution": {
+            "title": "Institution",
+            "type": "string"
+          },
+          "mask": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mask"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "on_budget",
+              "credit",
+              "loan",
+              "investment"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "mask",
+          "role",
+          "institution"
+        ],
+        "title": "AccountRef",
+        "type": "object"
+      },
+      "AccountRow": {
+        "properties": {
+          "available_balance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Balance"
+          },
+          "balance": {
+            "title": "Balance",
+            "type": "string"
+          },
+          "balance_as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance As Of"
+          },
+          "closed": {
+            "title": "Closed",
+            "type": "boolean"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "hidden": {
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "institution": {
+            "title": "Institution",
+            "type": "string"
+          },
+          "last_sync_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync At"
+          },
+          "mask": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mask"
+          },
+          "month_spend": {
+            "title": "Month Spend",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "on_budget",
+              "credit",
+              "loan",
+              "investment"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "role_source": {
+            "enum": [
+              "rule",
+              "user"
+            ],
+            "title": "Role Source",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "display_name",
+          "mask",
+          "institution",
+          "role",
+          "role_source",
+          "currency",
+          "balance",
+          "available_balance",
+          "balance_as_of",
+          "stale",
+          "closed",
+          "hidden",
+          "last_sync_at",
+          "source",
+          "month_spend"
+        ],
+        "title": "AccountRow",
+        "type": "object"
+      },
+      "AccountsSummary": {
+        "properties": {
+          "cash": {
+            "title": "Cash",
+            "type": "string"
+          },
+          "cash_after_cards": {
+            "title": "Cash After Cards",
+            "type": "string"
+          },
+          "credit_owed": {
+            "title": "Credit Owed",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "net_worth": {
+            "title": "Net Worth",
+            "type": "string"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cash",
+          "credit_owed",
+          "cash_after_cards",
+          "net_worth",
+          "currency",
+          "result_id"
+        ],
+        "title": "AccountsSummary",
+        "type": "object"
+      },
       "Annotation": {
         "properties": {
           "kind": {
@@ -93,6 +433,61 @@
           "source"
         ],
         "title": "Assumption",
+        "type": "object"
+      },
+      "BalancePoint": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "balance": {
+            "title": "Balance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "as_of",
+          "balance"
+        ],
+        "title": "BalancePoint",
+        "type": "object"
+      },
+      "CardPayment": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "other_account_name": {
+            "title": "Other Account Name",
+            "type": "string"
+          },
+          "posted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted Date"
+          }
+        },
+        "required": [
+          "id",
+          "posted_date",
+          "amount",
+          "other_account_name"
+        ],
+        "title": "CardPayment",
         "type": "object"
       },
       "ChartSpec": {
@@ -243,6 +638,87 @@
         "type": "object"
       },
       "JsonValue": {},
+      "MerchantHistory": {
+        "properties": {
+          "monthly": {
+            "items": {
+              "$ref": "#/components/schemas/MonthAmount"
+            },
+            "title": "Monthly",
+            "type": "array"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "string"
+          },
+          "total_12m": {
+            "title": "Total 12M",
+            "type": "string"
+          },
+          "visits_12m": {
+            "title": "Visits 12M",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "visits_12m",
+          "total_12m",
+          "monthly",
+          "result_id"
+        ],
+        "title": "MerchantHistory",
+        "type": "object"
+      },
+      "MonthAmount": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "amount"
+        ],
+        "title": "MonthAmount",
+        "type": "object"
+      },
+      "OtherLeg": {
+        "properties": {
+          "account_name": {
+            "title": "Account Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "posted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted Date"
+          }
+        },
+        "required": [
+          "id",
+          "account_name",
+          "posted_date"
+        ],
+        "title": "OtherLeg",
+        "type": "object"
+      },
       "PeriodPreset": {
         "enum": [
           "this_month",
@@ -496,6 +972,284 @@
         "title": "Table",
         "type": "object"
       },
+      "TransactionDetail": {
+        "properties": {
+          "merchant_history": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MerchantHistory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/TransactionRow"
+          }
+        },
+        "required": [
+          "transaction",
+          "merchant_history"
+        ],
+        "title": "TransactionDetail",
+        "type": "object"
+      },
+      "TransactionPage": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TransactionTotals"
+          }
+        },
+        "required": [
+          "rows",
+          "next_cursor",
+          "totals"
+        ],
+        "title": "TransactionPage",
+        "type": "object"
+      },
+      "TransactionRow": {
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/AccountRef"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "category_source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "rule",
+                  "model",
+                  "user"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Source"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "hidden": {
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "merchant": {
+            "title": "Merchant",
+            "type": "string"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "boolean"
+          },
+          "posted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted Date"
+          },
+          "suggested_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Category"
+          },
+          "transacted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transacted Date"
+          },
+          "transfer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransferInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "posted_date",
+          "transacted_date",
+          "pending",
+          "merchant",
+          "description",
+          "amount",
+          "currency",
+          "category",
+          "category_source",
+          "suggested_category",
+          "needs_review",
+          "note",
+          "hidden",
+          "account",
+          "transfer"
+        ],
+        "title": "TransactionRow",
+        "type": "object"
+      },
+      "TransactionTotals": {
+        "description": "Same row filter as the catalog (posted, no internal transfers, no hidden rows, cash and\ncredit accounts, one currency), so these equal Home's Spent and Income for the same window.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "money_in": {
+            "title": "Money In",
+            "type": "string"
+          },
+          "money_out": {
+            "title": "Money Out",
+            "type": "string"
+          },
+          "result_id": {
+            "title": "Result Id",
+            "type": "string"
+          },
+          "transfers_excluded": {
+            "title": "Transfers Excluded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count",
+          "money_out",
+          "money_in",
+          "transfers_excluded",
+          "currency",
+          "result_id"
+        ],
+        "title": "TransactionTotals",
+        "type": "object"
+      },
+      "TransferInfo": {
+        "properties": {
+          "confidence": {
+            "enum": [
+              "high",
+              "low"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "group_id": {
+            "title": "Group Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "internal",
+              "card_payment"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "other_leg": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OtherLeg"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "group_id",
+          "kind",
+          "confidence",
+          "other_leg"
+        ],
+        "title": "TransferInfo",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -544,6 +1298,412 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/accounts": {
+      "get": {
+        "operationId": "accounts_api_accounts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "currency",
+            "required": false,
+            "schema": {
+              "default": "USD",
+              "title": "Currency",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accounts"
+      }
+    },
+    "/api/accounts/{account_id}/summary": {
+      "get": {
+        "operationId": "account_summary_api_accounts__account_id__summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "preset",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PeriodPreset",
+              "default": "last_3_months"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPeriodSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Account Summary"
+      }
+    },
+    "/api/transactions": {
+      "get": {
+        "operationId": "transactions_api_transactions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_amount",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Amount"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_amount",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Amount"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "needs_review",
+                      "pending",
+                      "transfer",
+                      "hidden"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_transfers",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Include Transfers",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "date_desc",
+              "enum": [
+                "date_desc",
+                "date_asc",
+                "amount_desc",
+                "amount_asc"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "currency",
+            "required": false,
+            "schema": {
+              "default": "USD",
+              "title": "Currency",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transactions"
+      }
+    },
+    "/api/transactions/{txn_id}": {
+      "get": {
+        "operationId": "transaction_api_transactions__txn_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "txn_id",
+            "required": true,
+            "schema": {
+              "title": "Txn Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transaction"
+      }
+    },
     "/charts/meta": {
       "get": {
         "operationId": "meta_charts_meta_get",

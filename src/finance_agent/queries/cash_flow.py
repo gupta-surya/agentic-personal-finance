@@ -40,6 +40,7 @@ def net_cash_flow(
         WHERE t.tenant_id = %s
           AND NOT t.pending
           AND NOT t.is_internal_transfer
+          AND NOT t.hidden
           AND a.role IN ('on_budget', 'credit')
           AND a.currency = %s
           AND a.currency_kind = 'iso'

@@ -27,6 +27,7 @@ def data_stamp(conn: Connection, tenant_id: str) -> tuple[str, datetime]:
                  WHERE tenant_id = %(t)s AND is_internal_transfer),
                 (SELECT count(*) FROM transactions
                  WHERE tenant_id = %(t)s AND transfer_source = 'user'),
+                (SELECT count(*) FROM transactions WHERE tenant_id = %(t)s AND hidden),
                 (SELECT coalesce(max(last_changed_at)::text, '') FROM transactions
                  WHERE tenant_id = %(t)s),
                 (SELECT coalesce(

@@ -69,6 +69,10 @@ def _earliest_traps() -> list[SyntheticTransaction]:
         SyntheticTransaction(date(2025, 1, 5), Decimal("-9.00"), "dining", pending=True),
         SyntheticTransaction(date(2025, 2, 3), Decimal("-300.00"), None, internal_transfer=True),
         SyntheticTransaction(date(2025, 2, 3), Decimal("300.00"), None, internal_transfer=True),
+        # hidden rows: one before everything, one alone in its month, one an income row
+        SyntheticTransaction(date(2025, 1, 2), Decimal("-8.00"), "dining", hidden=True),
+        SyntheticTransaction(date(2027, 6, 10), Decimal("-777.00"), "dining", hidden=True),
+        SyntheticTransaction(date(2027, 6, 11), Decimal("999.00"), "income", hidden=True),
     ]
 
 
@@ -138,6 +142,12 @@ def to_postgres(conn: Connection, tenant_id: str, rows: list[Row]) -> PostgresSe
     """Ingest the dataset and reconcile it, so the real transfer logic is part of the test."""
     result = ingest(conn, tenant_id, pull_from_text(simplefin_body(rows)), UTC_TZ)
     assert result.status == "ok", result.message
+    hidden = [f"TXN {n}" for n, r in enumerate(rows) if r.txn.hidden]
+    assert len(hidden) == 3
+    conn.execute(
+        "UPDATE transactions SET hidden = true WHERE tenant_id = %s AND description = ANY(%s)",
+        (tenant_id, hidden),
+    )
     reconciled = reconcile(conn, tenant_id)
     pairs = sum(1 for r in rows if r.txn.internal_transfer and r.txn.amount > 0)
     assert reconciled.matched == pairs == 2, "the dataset has exactly two transfer pairs"

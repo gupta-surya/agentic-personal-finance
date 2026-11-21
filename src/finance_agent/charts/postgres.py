@@ -7,6 +7,7 @@ import psycopg
 from psycopg.conninfo import conninfo_to_dict
 
 from finance_agent.charts.api import CatalogUnavailable
+from finance_agent.db.loader import Connection
 from finance_agent.queries.pg_catalog import PostgresSeriesCatalog
 
 
@@ -33,5 +34,16 @@ def postgres_session(url: str, tenant_id: str) -> Iterator[PostgresSeriesCatalog
         with psycopg.connect(url) as conn:
             conn.read_only = True
             yield PostgresSeriesCatalog(conn, tenant_id)
+    except (psycopg.OperationalError, psycopg.InterfaceError):
+        raise CatalogUnavailable from None
+
+
+@contextmanager
+def read_connection(url: str) -> Iterator[Connection]:
+    """A read-only connection for the ledger reads; the same unavailable-database handling."""
+    try:
+        with psycopg.connect(url) as conn:
+            conn.read_only = True
+            yield conn
     except (psycopg.OperationalError, psycopg.InterfaceError):
         raise CatalogUnavailable from None

@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import date
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel, ConfigDict, Field
 
 from finance_agent.agent.ask import Answer, Session, answer
@@ -28,8 +28,9 @@ def create_agent_app(
     today: Callable[[], date],
     planner: Planner,
     source: Literal["synthetic", "postgres"] = "synthetic",
+    ledger: APIRouter | None = None,
 ) -> FastAPI:
-    app = create_app(registry, session, today, source=source)
+    app = create_app(registry, session, today, source=source, ledger=ledger)
 
     @app.post("/ask")
     def ask(request: AskRequest) -> dict[str, object]:

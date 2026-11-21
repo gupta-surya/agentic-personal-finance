@@ -10,7 +10,8 @@ from contextlib import AbstractContextManager
 from datetime import date
 from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from finance_agent.charts.period import PeriodError
@@ -43,6 +44,7 @@ def create_app(
     session: Session,
     today: Callable[[], date],
     source: Literal["synthetic", "postgres"] = "synthetic",
+    ledger: APIRouter | None = None,
 ) -> FastAPI:
     """``session`` opens one catalog per request; ``today`` is read once per request;
     ``source`` is reported by ``GET /charts/meta`` so the UI can say which data it shows."""
@@ -70,4 +72,14 @@ def create_app(
         except CatalogUnavailable:
             raise HTTPException(503, "The database is unavailable.") from None
 
+    if ledger is not None:
+        app.include_router(ledger)
+        # The ledger sits outside the chart error handling, so an unreachable database is a
+        # fixed-message 503 here too (never a connection string).
+        app.add_exception_handler(
+            CatalogUnavailable,
+            lambda _request, _err: JSONResponse(
+                {"detail": "The database is unavailable."}, status_code=503
+            ),
+        )
     return app

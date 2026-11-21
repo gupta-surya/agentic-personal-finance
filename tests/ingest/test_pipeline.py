@@ -10,6 +10,7 @@ import psycopg
 import pytest
 from psycopg.errors import CheckViolation
 
+from finance_agent.db.default_categories import seed_default_categories
 from finance_agent.db.loader import Connection
 from finance_agent.ingest.bronze import record_pull
 from finance_agent.ingest.contract import (
@@ -472,3 +473,33 @@ def test_bronze_and_silver_loaders_import_nothing_source_specific() -> None:
         modules = [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
         modules += [a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names]
         assert not [m for m in modules if "simplefin" in m], f"{name} imports a SimpleFIN module"
+
+
+def test_balance_history_one_row_per_changed_sync(conn: Connection) -> None:
+    """Each sync with a new balance adds a row; a re-sync with the same balance adds none."""
+
+    def pull(balance: str, balance_date: int) -> RawPull:
+        account = {
+            "id": "A",
+            "name": "A",
+            "conn_id": "C",
+            "currency": "USD",
+            "balance": balance,
+            "balance-date": balance_date,
+            "transactions": [],
+        }
+        body = {
+            "errlist": [],
+            "connections": [{"conn_id": "C", "name": "Bank"}],
+            "accounts": [account],
+        }
+        return pull_from_text(json.dumps(body))
+
+    seed_default_categories(conn, TENANT)
+    for balance, when, expected in [
+        ("10", 1774958400, 1),
+        ("10", 1775044800, 1),
+        ("12", 1775131200, 2),
+    ]:
+        assert ingest(conn, TENANT, pull(balance, when), UTC_TZ).status == "ok"
+        assert _count(conn, "SELECT count(*) FROM account_balances") == expected
