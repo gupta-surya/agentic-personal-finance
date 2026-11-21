@@ -13,6 +13,7 @@ from typing import Any, Literal
 from rich.console import Console
 
 from finance_agent.cli.context import AppContext
+from finance_agent.local_guard import harden, refuse_lan_bind
 
 Server = Callable[[Any, str, int], None]
 SYNTHETIC_TODAY = date(2026, 10, 25)  # the synthetic sample's range is Sep 2025 - Oct 2026
@@ -74,12 +75,16 @@ def run_serve(
     port: int = 8000,
     synthetic: bool = False,
     agent: bool = False,
+    i_understand_lan: bool = False,
     server: Server = _default_server,
     console: Console | None = None,
 ) -> int:
     out = console or Console()
+    if refusal := refuse_lan_bind(host, i_understand_lan):
+        out.print(f"[red]{refusal}[/red]")
+        return 1
     try:
-        app = build_server_app(ctx, synthetic=synthetic, agent=agent)
+        app = harden(build_server_app(ctx, synthetic=synthetic, agent=agent), port)
     except RuntimeError as err:
         out.print(f"[red]{err}[/red]")
         return 1
