@@ -108,3 +108,18 @@ def test_params_are_validated() -> None:
     for bad in ({"months": 2}, {"months": 13}, {"top_n": 0}, {"interval": "weekly"}):
         with pytest.raises(ValidationError):
             render(**bad)
+
+
+def test_current_month_is_a_partial_bucket_that_leaves_the_statistics_alone() -> None:
+    plain = render()
+    spec = render(include_current_month=True)
+    dining = next(s for s in spec.series if s.id == "category:dining")
+
+    assert [(p.x, p.partial) for p in dining.points][-2:] == [
+        ("2026-09-01", False),
+        ("2026-10-01", True),
+    ]
+    assert len(dining.points) == 7  # six full months and the month to date
+    assert spec.period is not None and spec.period.end == date(2026, 10, 26)
+    # Average, lowest, highest, change and trend are those of the six full months.
+    assert spec.table.rows == plain.table.rows

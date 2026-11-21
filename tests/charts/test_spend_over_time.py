@@ -134,3 +134,16 @@ def test_currency_is_never_mixed() -> None:
     spec = render(currency="EUR")
     assert [s.id for s in spec.series] == ["category:dining"]
     assert spec.table.rows == [["Mar 2026", "€30.00"]]
+
+
+def test_include_current_month_marks_the_month_to_date_bucket() -> None:
+    spec = default_registry().render(
+        "spend_over_time",
+        {"period": {"preset": "last_3_months"}, "include_current_month": True},
+        FakeSeriesCatalog(),
+        date(2026, 10, 25),
+    )
+
+    assert {p.x for s in spec.series for p in s.points if p.partial} == {"2026-10-01"}
+    assert spec.table.rows[-1][0] == "Oct 2026 (MTD)"
+    assert not any(p.partial for s in spec.series for p in s.points if p.x != "2026-10-01")

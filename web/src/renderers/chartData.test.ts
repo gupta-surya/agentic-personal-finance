@@ -1,15 +1,25 @@
 import type { ChartSpec, Series } from "../api/types";
 import { axisMoney, pivotSeries, specCurrency } from "./chartData";
+import { monthTick } from "./primitives";
 
 const series = (id: string, ys: [string, string | null][]): Series => ({
   id,
   kind: "line",
   label: id,
   result_id: "r",
-  points: ys.map(([x, y]) => ({ x, y })),
+  points: ys.map(([x, y]) => ({ x, y, partial: false })),
 });
 
 describe("pivotSeries", () => {
+  it("flags the month-to-date row and labels its tick", () => {
+    const partial: Series = { ...series("a", [["2026-09-01", "5.00"]]), points: [{ x: "2026-10-01", y: "2.00", partial: true }, { x: "2026-09-01", y: "5.00", partial: false }] };
+    const rows = pivotSeries([partial]);
+
+    expect(rows.map((r) => r.partial)).toEqual([undefined, true]);
+    expect(monthTick("2026-10-01", false, true)).toBe("Oct MTD");
+    expect(monthTick("2026-10-01", false)).toBe("Oct");
+  });
+
   it("joins series on x, keeps the original strings, and sorts by x", () => {
     const rows = pivotSeries([
       series("net", [["2026-03-01", "-210.75"], ["2026-02-01", "549.60"]]),

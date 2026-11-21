@@ -9,7 +9,7 @@ import { formatMonth } from "../lib/money";
 import { Measure } from "../ui/Measure";
 import { EASE_OUT, SPRING, useCalm } from "../ui/motion";
 import { monthRange, pivotSeries, specCurrency, type Row } from "./chartData";
-import { barPath, GridY, labelStep, monthTick, nearestIndex, stepFor, Tip, TipRow } from "./primitives";
+import { barPath, GridY, labelStep, monthTick, nearestIndex, partialBar, stepFor, Tip, TipRow } from "./primitives";
 import type { Renderer } from "./registry";
 
 const H = 280;
@@ -89,11 +89,14 @@ function Chart({ width, rows, series, currency, lines }: Props) {
           {lines
             ? series.map((s, k) => {
                 // A month with no spend is a gap in the line, not a zero.
-                const pts = rows.map((r, i) => ({ px: centers[i] ?? 0, v: r.values[s.id] }));
+                const pts = rows.map((r, i) => ({ px: centers[i] ?? 0, v: r.values[s.id], partial: r.partial }));
+                const full = pts.filter((p) => !p.partial);
+                const hop = pts.find((p) => p.partial && p.v !== undefined);
+                const from = full[full.length - 1];
                 return (
                   <g key={s.id} data-series={s.id} data-kind="line">
                     <LinePath
-                      data={pts}
+                      data={full}
                       x={(p) => p.px}
                       y={(p) => y(p.v ?? 0)}
                       defined={(p) => p.v !== undefined}
@@ -101,7 +104,7 @@ function Chart({ width, rows, series, currency, lines }: Props) {
                     >
                       {({ path }) => (
                         <motion.path
-                          d={path(pts) ?? ""}
+                          d={path(full) ?? ""}
                           fill="none"
                           stroke={categoryColor(s.id)}
                           strokeWidth={2}
@@ -112,6 +115,9 @@ function Chart({ width, rows, series, currency, lines }: Props) {
                         />
                       )}
                     </LinePath>
+                    {hop && from?.v !== undefined && hop.v !== undefined && (
+                      <line x1={from.px} y1={y(from.v)} x2={hop.px} y2={y(hop.v)} stroke={categoryColor(s.id)} strokeWidth={2} strokeDasharray="4 3" />
+                    )}
                     {pts.map((p, i) =>
                       p.v === undefined || (active !== i && i !== rows.length - 1) ? null : (
                         <circle key={i} cx={p.px} cy={y(p.v)} r={4} fill={categoryColor(s.id)} stroke="var(--surface)" strokeWidth={2} />
@@ -141,6 +147,7 @@ function Chart({ width, rows, series, currency, lines }: Props) {
                           animate={{ d: barPath(bx, bw, y0, y1, top ? 4 : 0) }}
                           transition={{ ...SPRING, delay: calm ? 0 : i * 0.025 + k * 0.03 }}
                           fill={categoryColor(s.id)}
+                          {...partialBar(r.partial, categoryColor(s.id))}
                         />
                       );
                     })}
@@ -160,7 +167,7 @@ function Chart({ width, rows, series, currency, lines }: Props) {
                 fontWeight={i === active ? 600 : 400}
                 aria-hidden="true"
               >
-                {show ? monthTick(r.x, i === 0) : ""}
+                {show ? monthTick(r.x, i === 0, r.partial) : ""}
               </text>
             );
           })}

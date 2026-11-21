@@ -10,7 +10,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from finance_agent.charts.period import last_n_months, months_of
+from finance_agent.charts.period import last_n_months, months_of, with_current_month
 from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
@@ -40,11 +40,14 @@ class CategoryTrendsParams(BaseModel):
     categories: list[str] = []  # explicit selection; empty means the top N
     top_n: int = Field(default=6, ge=1, le=12)
     currency: str = "USD"
+    include_current_month: bool = False
 
 
 def build(params: CategoryTrendsParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
-    period = last_n_months(today, params.months)
-    months = months_of(period)
+    window = last_n_months(today, params.months)
+    months = months_of(window)
+    mtd = today.replace(day=1) if params.include_current_month else None
+    period = with_current_month(window, today) if mtd else window
     chosen = set(params.categories)
     spend = catalog.monthly_spend_by_category(
         period.start, period.end, params.currency, top_n=None if chosen else params.top_n
@@ -52,7 +55,7 @@ def build(params: CategoryTrendsParams, catalog: SeriesCatalog, today: date) -> 
     if spend.rows is None:
         raise ValueError("monthly_spend_by_category must return rows")
     # The engine applies the selection and records it, so the figures cite this exact result.
-    trends = category_trends(spend, months, only=chosen or None)
+    trends = category_trends(spend, months, only=chosen or None, partial_month=mtd)
     assert trends.rows is not None
 
     cur = params.currency
@@ -95,7 +98,8 @@ def build(params: CategoryTrendsParams, catalog: SeriesCatalog, today: date) -> 
                 label=label,
                 result_id=trends.result_id,
                 points=[
-                    Point(x=m.isoformat(), y=v) for m, v in zip(months, r.monthly, strict=True)
+                    Point(x=m.isoformat(), y=v, partial=m == mtd)
+                    for m, v in zip([*months, *([mtd] if mtd else [])], r.monthly, strict=True)
                 ],
             )
             for r, label in zip(trends.rows, labels, strict=True)

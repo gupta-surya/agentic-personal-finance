@@ -118,6 +118,60 @@ def _resolved(preset: PeriodPreset, start: date, end: date) -> ResolvedPeriod:
     return ResolvedPeriod(preset=preset, start=start, end=end, label=range_label(start, end))
 
 
+def _same_day_last_month(day: date) -> date:
+    first = _add_months(day.replace(day=1), -1)
+    return first.replace(day=min(day.day, (day.replace(day=1) - first).days))
+
+
+def previous_of(resolved: ResolvedPeriod) -> ResolvedPeriod | None:
+    """The window a period is compared with, aligned to the calendar so it matches a
+    statement; ``None`` for ``all_time`` (nothing precedes it). ``custom`` keeps the equal
+    length immediately before. Uses the resolved dates only, never the clock."""
+    preset, start, end = resolved.preset, resolved.start, resolved.end
+    if preset is PeriodPreset.ALL_TIME:
+        return None
+    if preset is PeriodPreset.THIS_MONTH:
+        # Same day-of-month span, clamped to the previous month's length.
+        same_day = _same_day_last_month(end - timedelta(1))
+        return _resolved(preset, _add_months(start, -1), same_day + timedelta(1))
+    if preset in _LAST_N_MONTHS:
+        n = _LAST_N_MONTHS[preset]
+        return _resolved(preset, _add_months(start, -n), start)
+    if preset is PeriodPreset.YEAR_TO_DATE:
+        last = end - timedelta(1)
+        try:
+            same_day = last.replace(year=last.year - 1)
+        except ValueError:  # Feb 29 → Feb 28
+            same_day = last.replace(year=last.year - 1, day=28)
+        return _resolved(preset, date(start.year - 1, 1, 1), same_day + timedelta(1))
+    if preset is PeriodPreset.LAST_YEAR:
+        return _resolved(preset, date(start.year - 1, 1, 1), start)
+    return _resolved(preset, start - (end - start), start)
+
+
+def comparison_label(previous: ResolvedPeriod) -> str:
+    """``"vs Aug 2026"``, ``"vs Sep 1–25"``, ``"vs Oct 2025 – Mar 2026"``; a custom window
+    reads ``"vs previous N days"``."""
+    start, last = previous.start, previous.end - timedelta(1)
+    if previous.preset is PeriodPreset.CUSTOM:
+        return f"vs previous {(previous.end - start).days} days"
+    mon = _MONTHS
+    if start.day == 1 and previous.end.day == 1:  # whole months
+        if (start.year, start.month) == (last.year, last.month):
+            return f"vs {mon[start.month - 1]} {start.year}"
+        return f"vs {mon[start.month - 1]} {start.year} – {mon[last.month - 1]} {last.year}"
+    if start.year == last.year and start.month == last.month:
+        return f"vs {mon[start.month - 1]} {start.day}–{last.day}"
+    return f"vs {_fmt(start)} – {_fmt(last)}"
+
+
+def with_current_month(resolved: ResolvedPeriod, today: date) -> ResolvedPeriod:
+    """Extend a period that stops before this month to include the month-to-date bucket."""
+    if resolved.end > today.replace(day=1):
+        return resolved
+    return _resolved(resolved.preset, resolved.start, today + timedelta(1))
+
+
 def resolve_period(
     period: Period,
     today: date,

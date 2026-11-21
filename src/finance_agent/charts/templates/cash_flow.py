@@ -16,7 +16,8 @@ from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
     format_money,
-    month_label,
+    mtd_label,
+    partial_month,
     resolve,
     source_of,
     span_label,
@@ -31,6 +32,7 @@ class CashFlowParams(BaseModel):
     template: Literal["cash_flow"]
     period: Period
     currency: str = "USD"
+    include_current_month: bool = False
 
 
 def _title(net: Decimal | None, span: str, currency: str) -> str:
@@ -45,7 +47,8 @@ def _title(net: Decimal | None, span: str, currency: str) -> str:
 
 
 def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
-    period = resolve(params.period, today, catalog)
+    period = resolve(params.period, today, catalog, params.include_current_month)
+    mtd = partial_month(period, today, params.include_current_month)
     result = catalog.cash_flow(period.start, period.end, params.currency)
     if result.rows is None:
         raise ValueError("cash_flow must return rows")
@@ -63,28 +66,37 @@ def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartS
                 kind="bar",
                 label="Inflow",
                 result_id=result.result_id,
-                points=[Point(x=r.month.isoformat(), y=r.inflow) for r in rows],
+                points=[
+                    Point(x=r.month.isoformat(), y=r.inflow, partial=r.month == mtd) for r in rows
+                ],
             ),
             Series(
                 id="outflow",
                 kind="bar",
                 label="Outflow",
                 result_id=result.result_id,
-                points=[Point(x=r.month.isoformat(), y=r.outflow) for r in rows],
+                points=[
+                    Point(x=r.month.isoformat(), y=r.outflow, partial=r.month == mtd) for r in rows
+                ],
             ),
             Series(
                 id="net",
                 kind="line",
                 label="Net",
                 result_id=result.result_id,
-                points=[Point(x=r.month.isoformat(), y=r.net) for r in rows],
+                points=[
+                    Point(x=r.month.isoformat(), y=r.net, partial=r.month == mtd) for r in rows
+                ],
             ),
             Series(
                 id="running_net",
                 kind="line",
                 label="Running net",
                 result_id=running.result_id,
-                points=[Point(x=r.month.isoformat(), y=r.running_net) for r in running.rows],
+                points=[
+                    Point(x=r.month.isoformat(), y=r.running_net, partial=r.month == mtd)
+                    for r in running.rows
+                ],
             ),
         ]
 
@@ -103,7 +115,7 @@ def build(params: CashFlowParams, catalog: SeriesCatalog, today: date) -> ChartS
             columns=["Month", "Inflow", "Outflow", "Net", "Running net"],
             rows=[
                 [
-                    month_label(r.month),
+                    mtd_label(r.month, r.month == mtd),
                     format_money(r.inflow, cur),
                     format_money(r.outflow, cur),
                     format_money(r.net, cur),

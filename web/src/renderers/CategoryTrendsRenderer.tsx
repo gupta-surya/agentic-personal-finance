@@ -27,6 +27,9 @@ function Spark({ series, width, color, onRead }: { series: Series; width: number
   const xs = values.map((_, i) => 4 + (i * (width - 8)) / (values.length - 1));
   const pts = values.map((v, i) => ({ px: xs[i] ?? 0, py: y(v) }));
   const last = pts[pts.length - 1];
+  // The month-to-date bucket is drawn as a dashed hop from the last full month.
+  const hop = series.points[series.points.length - 1]?.partial ? pts.length - 2 : -1;
+  const solid = hop >= 0 ? pts.slice(0, hop + 1) : pts;
   return (
     <svg
       width={width}
@@ -39,10 +42,10 @@ function Spark({ series, width, color, onRead }: { series: Series; width: number
       }}
       onPointerLeave={() => onRead(null)}
     >
-      <LinePath data={pts} x={(p) => p.px} y={(p) => p.py} curve={curveMonotoneX}>
+      <LinePath data={solid} x={(p) => p.px} y={(p) => p.py} curve={curveMonotoneX}>
         {({ path }) => (
           <motion.path
-            d={path(pts) ?? ""}
+            d={path(solid) ?? ""}
             fill="none"
             stroke={color}
             strokeWidth={2}
@@ -53,6 +56,9 @@ function Spark({ series, width, color, onRead }: { series: Series; width: number
           />
         )}
       </LinePath>
+      {hop >= 0 && last && pts[hop] && (
+        <line x1={pts[hop].px} y1={pts[hop].py} x2={last.px} y2={last.py} stroke={color} strokeWidth={2} strokeDasharray="4 3" />
+      )}
       {last && <circle cx={last.px} cy={last.py} r={3} fill={color} stroke="var(--surface)" strokeWidth={2} />}
     </svg>
   );

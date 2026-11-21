@@ -1,6 +1,6 @@
 """``kpi``: "How much did I spend on dining last month?"
 
-One headline number with its change from the previous period of the same length. The
+One headline number with its change from the calendar-aligned previous period (``previous_of``). The
 value and the previous value are two scalar ``kpi`` queries; the change amount and
 percentage come from the ``period_delta`` engine, which cites both. The builder only
 copies and labels them.
@@ -17,7 +17,14 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from finance_agent.charts.period import Period, ResolvedPeriod, day_label, range_label
+from finance_agent.charts.period import (
+    Period,
+    ResolvedPeriod,
+    comparison_label,
+    day_label,
+    previous_of,
+    range_label,
+)
 from finance_agent.charts.registry import Template
 from finance_agent.charts.spec import Assumption, ChartSpec, Point, Series, Table
 from finance_agent.charts.templates.common import (
@@ -96,21 +103,21 @@ def _covers(previous_start: date, catalog: SeriesCatalog, currency: str) -> tupl
 
 def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
     period = resolve(params.period, today, catalog)
-    # The previous period is the same length immediately before this one.
-    previous_start = period.start - (period.end - period.start)
-    previous_label = range_label(previous_start, period.start)
-
+    prior = previous_of(period)
     current = catalog.kpi(
         params.measure, period.start, period.end, params.currency, category=params.category
     )
     if current.value is None:
         raise ValueError("kpi must return scalar values")
-    comparable, reason = _covers(previous_start, catalog, params.currency)
+    if prior is None:  # all_time: nothing precedes it
+        return _without_comparison(params, period, current, NOT_ENOUGH_HISTORY, NOT_ENOUGH_HISTORY)
+    previous_label = range_label(prior.start, prior.end)
+    comparable, reason = _covers(prior.start, catalog, params.currency)
     if not comparable:
         assert reason is not None
         return _without_comparison(params, period, current, previous_label, reason)
     previous = catalog.kpi(
-        params.measure, previous_start, period.start, params.currency, category=params.category
+        params.measure, prior.start, prior.end, params.currency, category=params.category
     )
     delta = period_delta(current, previous)
     if previous.value is None or delta.rows is None:
@@ -166,7 +173,7 @@ def build(params: KpiParams, catalog: SeriesCatalog, today: date) -> ChartSpec:
         params=params.model_dump(mode="json"),
         period=period,
         series=series,
-        assumptions=_assumptions(params, previous_label),
+        assumptions=_assumptions(params, comparison_label(prior)),
         sources=[source_of(current), source_of(previous), source_of(delta)],
         table=Table(
             columns=["Measure", "Value"],

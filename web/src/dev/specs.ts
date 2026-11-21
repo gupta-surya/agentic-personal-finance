@@ -22,8 +22,8 @@ export const swatchSpec: ChartSpec = {
       label: "Inflow",
       result_id: "res_7f3b",
       points: [
-        { x: "2026-02-01", y: "3200.00" },
-        { x: "2026-03-01", y: "3200.00" },
+        { x: "2026-02-01", y: "3200.00", partial: false },
+        { x: "2026-03-01", y: "3200.00", partial: false },
       ],
     },
     {
@@ -32,8 +32,8 @@ export const swatchSpec: ChartSpec = {
       label: "Outflow",
       result_id: "res_7f3b",
       points: [
-        { x: "2026-02-01", y: "2650.40" },
-        { x: "2026-03-01", y: "3410.75" },
+        { x: "2026-02-01", y: "2650.40", partial: false },
+        { x: "2026-03-01", y: "3410.75", partial: false },
       ],
     },
     {
@@ -42,8 +42,8 @@ export const swatchSpec: ChartSpec = {
       label: "Net",
       result_id: "res_7f3b",
       points: [
-        { x: "2026-02-01", y: "549.60" },
-        { x: "2026-03-01", y: "-210.75" },
+        { x: "2026-02-01", y: "549.60", partial: false },
+        { x: "2026-03-01", y: "-210.75", partial: false },
       ],
     },
   ],
