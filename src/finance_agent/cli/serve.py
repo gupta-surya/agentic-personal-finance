@@ -56,13 +56,19 @@ def build_server_app(ctx: AppContext, *, synthetic: bool, agent: bool = False) -
             check_database_url,
             postgres_session,
             read_connection,
+            write_connection,
         )
         from finance_agent.ledger.api import ledger_router
 
         check_database_url(url)
         session = partial(postgres_session, url, ctx.tenant_id)
         source = "postgres"
-        ledger = ledger_router(partial(read_connection, url), ctx.tenant_id, today)
+        ledger = ledger_router(
+            partial(read_connection, url),
+            ctx.tenant_id,
+            today,
+            partial(write_connection, url),
+        )
 
     if not agent:
         return create_app(registry, session, today, source=source, ledger=ledger)

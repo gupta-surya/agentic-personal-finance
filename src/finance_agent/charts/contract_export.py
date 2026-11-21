@@ -30,7 +30,7 @@ def openapi() -> dict[str, Any]:
         raise AssertionError("contract export opened a connection")
 
     today = lambda: date(2026, 1, 1)  # noqa: E731
-    ledger = ledger_router(no_database, "tenant", today)
+    ledger = ledger_router(no_database, "tenant", today, no_database)
     return create_app(TemplateRegistry(), fake_session, today, ledger=ledger).openapi()
 
 
