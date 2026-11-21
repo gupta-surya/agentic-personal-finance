@@ -5,7 +5,10 @@ from finance_agent.cli.prompts import ScriptedPrompter
 
 def test_scripted_prompter_returns_queued_then_defaults() -> None:
     p = ScriptedPrompter(
-        text=["hello"], secret=["tok"], confirm=[False], select=["dining"],
+        text=["hello"],
+        secret=["tok"],
+        confirm=[False],
+        select=["dining"],
         multiselect=[["a (#1)", "b (#2)"]],
     )
     assert p.text("name?", default="x") == "hello"

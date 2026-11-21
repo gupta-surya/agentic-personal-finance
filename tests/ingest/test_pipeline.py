@@ -452,6 +452,7 @@ def test_inverted_sign_source_stores_the_same_signed_amounts(conn: Connection) -
 
 # --- migrations with data and connection hygiene -------------------------
 
+
 def test_connection_is_left_usable_after_ingest_errors(conn: Connection) -> None:
     with pytest.raises(psycopg.errors.Error):
         conn.execute("SELECT * FROM table_that_does_not_exist")

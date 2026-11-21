@@ -429,6 +429,7 @@ def test_payload_with_errors_still_loads(conn: Connection) -> None:
 
     assert _count(conn, "SELECT count(*) FROM accounts") == 1
 
+
 def test_apply_schema_works_on_a_non_autocommit_connection(conn: Connection) -> None:
     url = os.environ.get(
         "TEST_DATABASE_URL", "postgresql://finance:finance@127.0.0.1:5432/finance_test"

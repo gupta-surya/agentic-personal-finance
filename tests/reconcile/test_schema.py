@@ -40,6 +40,7 @@ def test_new_accounts_default_to_on_budget_open_and_rule_sourced(conn: Connectio
 
     assert rows == [("on_budget", "rule", False)]
 
+
 def test_seed_marks_only_income_as_income_and_never_flips_a_user_choice(conn: Connection) -> None:
     flags = _pairs(conn, "SELECT name, is_income FROM categories")
     assert [name for name, flag in flags.items() if flag] == ["income"]
