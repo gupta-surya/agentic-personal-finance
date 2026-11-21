@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from finance_agent.ingest.contract import NormalizedBatch, NormalizedTransaction, PullError
-from finance_agent.ingest.simplefin.client import FixtureSimpleFinClient, LiveSimpleFinClient
+from finance_agent.ingest.simplefin.client import FixtureSimpleFinClient
 from finance_agent.ingest.simplefin.common import local_date
 from finance_agent.ingest.simplefin.detect import detect_dialect
 from finance_agent.ingest.simplefin.normalize import normalize_simplefin
@@ -346,16 +346,17 @@ def test_fixture_client_returns_the_exact_bytes_and_metadata() -> None:
     assert (pull.requested_version, pull.request_params) == ("1", {"version": "1"})
 
 
-def test_live_client_is_still_a_stub() -> None:
-    with pytest.raises(NotImplementedError):
-        LiveSimpleFinClient().fetch()
-
-
 def test_no_network_libraries_in_the_ingest_package() -> None:
-    forbidden = ("requests", "httpx", "urllib", "socket", "aiohttp")
+    # Invariant 2: only the sanctioned bank connector reaches the network. httpx is allowed
+    # solely in the SimpleFIN transport; urllib.parse (pure URL string parsing) is fine, but
+    # urllib.request and the other HTTP clients are banned throughout ingest/.
+    banned = ("requests", "httpx", "socket", "aiohttp", "urllib.request")
+    allowed = {"transport.py": {"httpx"}}  # ingest/simplefin/transport.py: the bank client
     root = Path(__file__).resolve().parents[2] / "src" / "finance_agent"
     for path in root.glob("ingest/**/*.py"):
         source = path.read_text(encoding="utf-8")
-        for name in forbidden:
+        for name in banned:
+            if name in allowed.get(path.name, set()):
+                continue
             assert f"import {name}" not in source, f"{path.name} imports {name}"
             assert f"from {name}" not in source, f"{path.name} imports {name}"

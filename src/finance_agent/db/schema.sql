@@ -183,3 +183,14 @@ CREATE TABLE transactions (
 );
 
 CREATE INDEX transactions_transfer_group_idx ON transactions (tenant_id, transfer_group_id);
+
+-- Credentials zone: encrypted bank access URLs, isolated from the data tables.
+-- tenant_id-scoped, ciphertext only, with no foreign key into connections/accounts.
+CREATE TABLE credentials (
+    tenant_id  TEXT        NOT NULL,
+    kind       TEXT        NOT NULL,
+    ciphertext BYTEA       NOT NULL,
+    key_id     TEXT        NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (tenant_id, kind)
+);

@@ -1,7 +1,9 @@
 """Request parameters for SimpleFIN's ``GET /accounts``. Pure: no HTTP here.
 
 Pending transactions are excluded by the server unless ``pending=1`` is sent, so a
-pull that wants them must ask. The chosen parameters are recorded in bronze.
+pull that wants them must ask. ``balances_only`` asks the server to omit
+transactions (used to discover accounts without pulling history). The chosen
+parameters are recorded in bronze; the access URL and its credentials never are.
 """
 
 from datetime import datetime
@@ -18,9 +20,12 @@ def simplefin_request_params(
     start: datetime | None = None,
     end: datetime | None = None,
     include_pending: bool = True,
+    balances_only: bool = False,
 ) -> dict[str, str]:
     """Query parameters for ``/accounts``. ``start`` is inclusive, ``end`` exclusive."""
     params = {"version": str(version)}
+    if balances_only:
+        params["balances-only"] = "1"
     if include_pending:
         params["pending"] = "1"
     if start is not None:

@@ -1,5 +1,7 @@
 # Local development Postgres only. Bound to 127.0.0.1 so it is never exposed on
 # the network. The credentials are throwaway local-dev values, not secrets.
+# `finance setup` creates a separate `finance` database and app role here for real
+# use; the named volume below persists data across `docker compose down`.
 services:
   db:
     image: postgres:16
@@ -14,3 +16,8 @@ services:
       interval: 2s
       timeout: 3s
       retries: 15
+    volumes:
+      - finance_pgdata:/var/lib/postgresql/data
+
+volumes:
+  finance_pgdata:
