@@ -41,8 +41,11 @@ _FROM = """
     JOIN connections cn ON cn.tenant_id = a.tenant_id AND cn.id = a.connection_id
     LEFT JOIN categories c ON c.tenant_id = t.tenant_id AND c.name = t.category
     LEFT JOIN transfer_groups g ON g.tenant_id = t.tenant_id AND g.id = t.transfer_group_id
-    LEFT JOIN transactions o ON o.tenant_id = t.tenant_id
-        AND o.transfer_group_id = t.transfer_group_id AND o.id <> t.id
+    LEFT JOIN LATERAL (  -- the other leg; LIMIT 1 so a malformed group can't duplicate rows
+        SELECT * FROM transactions x WHERE x.tenant_id = t.tenant_id
+            AND x.transfer_group_id = t.transfer_group_id AND x.id <> t.id
+        ORDER BY x.id LIMIT 1
+    ) o ON true
     LEFT JOIN accounts oa ON oa.tenant_id = o.tenant_id AND oa.id = o.account_id
 """
 _NEEDS_REVIEW = "(t.category IS NULL AND NOT t.pending AND NOT t.is_internal_transfer)"
@@ -267,13 +270,16 @@ def get_transaction(
     if key is not None and key[0]:
         months = conn.execute(
             """
-            SELECT date_trunc('month', posted_date)::date, -SUM(amount), count(*)
-            FROM transactions
-            WHERE tenant_id = %s AND merchant_normalized = %s AND NOT pending AND NOT hidden
-              AND NOT is_internal_transfer AND posted_date > %s AND posted_date <= %s
+            SELECT date_trunc('month', t.posted_date)::date, -SUM(t.amount), count(*)
+            FROM transactions t
+            JOIN accounts a ON a.tenant_id = t.tenant_id AND a.id = t.account_id
+            WHERE t.tenant_id = %s AND t.merchant_normalized = %s AND NOT t.pending
+              AND NOT t.hidden AND NOT t.is_internal_transfer
+              AND a.role IN ('on_budget', 'credit') AND a.currency_kind = 'iso'
+              AND a.currency = %s AND t.posted_date > %s AND t.posted_date <= %s
             GROUP BY 1 ORDER BY 1
             """,
-            (tenant_id, key[0], today - timedelta(days=365), today),
+            (tenant_id, key[0], row[7], today - timedelta(days=365), today),
         ).fetchall()
         history = MerchantHistory(
             visits_12m=sum(m[2] for m in months),

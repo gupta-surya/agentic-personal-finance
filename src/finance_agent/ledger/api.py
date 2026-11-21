@@ -24,6 +24,7 @@ from finance_agent.ledger.models import (
     TransactionDetail,
     TransactionPage,
 )
+from finance_agent.queries.pg_catalog import PostgresSeriesCatalog
 
 ConnectionSession = Callable[[], AbstractContextManager[Connection]]
 
@@ -90,13 +91,7 @@ def ledger_router(
         try:
             period = Period(preset=preset, start=start, end=end)
             with read_session() as conn:
-
-                def earliest() -> date | None:
-                    row = conn.execute(
-                        "SELECT min(posted_date) FROM transactions WHERE tenant_id = %s",
-                        (tenant_id,),
-                    ).fetchone()
-                    return None if row is None else row[0]
+                earliest = PostgresSeriesCatalog(conn, tenant_id).earliest_date
 
                 resolved = resolve_period(period, today(), earliest)
                 return reads.account_summary(
